@@ -22,10 +22,26 @@ namespace Icp.HotelAPI.ServiciosCompartidos.Helpers
                 // Lógica para que ignore el campo Foto
                 .ForMember(x => x.Foto, options => options.Ignore());
             CreateMap<CategoriaPatchDTO, Categoria>().ReverseMap();
+            CreateMap<Categoria, CategoriaDetallesDTO>()
+                .ForMember(x => x.TipoCamas, options => options.MapFrom(MapCategoriaTipoCamas));
 
             CreateMap<TipoCama, TipoCamaDTO>().ReverseMap();
         }
 
-       
+        private List<TipoCamaDetallesDTO> MapCategoriaTipoCamas(Categoria categoria, CategoriaDetallesDTO categoriaDetallesDTO)
+        {
+            var resultado = new List<TipoCamaDetallesDTO>();
+            if (categoria.TipoCamas == null)
+            {
+                return resultado;
+            }
+            foreach (var tipoCama in categoria.TipoCamas)
+            {
+                resultado.Add(new TipoCamaDetallesDTO() { Tipo = tipoCama.Tipo });
+            }
+            return resultado;
+        }
+
+
     }
 }

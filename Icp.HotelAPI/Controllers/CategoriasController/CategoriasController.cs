@@ -28,18 +28,21 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
 
         // Obtener todas las categorias
         [HttpGet]
-        public async Task<ActionResult<List<CategoriaDTO>>> Get()
+        public async Task<ActionResult<List<CategoriaDetallesDTO>>> Get()
         {
-            var entidades = await context.Categorias.ToListAsync();
-            var dtos = mapper.Map<List<CategoriaDTO>>(entidades);
+            var entidades = await context.Categorias
+                .Include(x => x.TipoCamas)
+                .ToListAsync();
+            var dtos = mapper.Map<List<CategoriaDetallesDTO>>(entidades);
             return dtos;
         }
 
         // Obtener categoria por {id}
         [HttpGet("{id}", Name = "obtenerCategoria")]
-        public async Task<ActionResult<CategoriaDTO>> Get(int id)
+        public async Task<ActionResult<CategoriaDetallesDTO>> Get(int id)
         {
             var entidad = await context.Categorias
+                .Include(x => x.TipoCamas)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (entidad == null)
@@ -47,7 +50,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
                 return NotFound();
             }
 
-            var dto = mapper.Map<CategoriaDTO>(entidad);
+            var dto = mapper.Map<CategoriaDetallesDTO>(entidad);
             return dto;
         }
 
