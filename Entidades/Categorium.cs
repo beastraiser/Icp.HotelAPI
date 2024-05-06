@@ -8,6 +8,7 @@ namespace Icp.HotelAPI
         public Categorium()
         {
             Habitacions = new HashSet<Habitacion>();
+            TipoCamas = new HashSet<TipoCama>();
         }
 
         public int Id { get; set; }
@@ -18,5 +19,6 @@ namespace Icp.HotelAPI
         public string Foto { get; set; }
 
         public virtual ICollection<Habitacion> Habitacions { get; set; }
+        public virtual ICollection<TipoCama> TipoCamas { get; set; }
     }
 }

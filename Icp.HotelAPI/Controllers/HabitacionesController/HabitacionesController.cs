@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
+using Icp.HotelAPI.Controllers.CategoriasController.DTO;
 using Icp.HotelAPI.Controllers.HabitacionesController.DTO;
 using Icp.HotelAPI.ServiciosCompartidos.PaginacionDTO;
 using Icp.HotelAPI.ServiciosCompartidos.PaginacionDTO.Helpers;
@@ -23,11 +24,24 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
             this.mapper = mapper;
         }
 
-        // Obtener todas las habitaciones con paginación (10 resultados máximo por página)
+        // Obtener todas las habitaciones sin paginación
         [HttpGet]
+        public async Task<ActionResult<List<HabitacionDTO>>> Get2()
+        {
+            var entidades = await context.Habitaciones.ToListAsync();
+            var dtos = mapper.Map<List<HabitacionDTO>>(entidades);
+            return dtos;
+        }
+
+        // Obtener todas las habitaciones disponibles con paginación (10 resultados máximo por página)
+        [HttpGet("disponibles")]
         public async Task<ActionResult<List<HabitacionDTO>>> Get([FromQuery] PaginacionDTO paginacionDTO)
         {
-            var queryable = context.Habitacions.AsQueryable();
+            var disponible = context.Habitaciones
+                .Where(x => x.Disponibilidad == true)
+                .AsQueryable();
+
+            var queryable = disponible.AsQueryable();
             await HttpContext.InsertarParametrosPaginacion(queryable, paginacionDTO.CantidadRegistrosPorPagina);
 
             var entidades = await queryable.Paginar(paginacionDTO).ToListAsync();
@@ -35,11 +49,31 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
             return dtos;
         }
 
+        // Filtro por categoria y disponibilidad = true
+        [HttpGet("categoria")]
+        public async Task<ActionResult<List<HabitacionDTO>>> Filtrar([FromQuery] FiltroHabitacionDTO filtroHabitacionDTO)
+        {
+            var habitacionesQueryable = context.Habitaciones
+                .Where(x => x.Disponibilidad == true)
+                .AsQueryable();
+
+            if (filtroHabitacionDTO.IdCategoria != 0)
+            {
+                habitacionesQueryable = habitacionesQueryable.Where(x => x.IdCategoria == filtroHabitacionDTO.IdCategoria);
+            }
+
+            await HttpContext.InsertarParametrosPaginacion(habitacionesQueryable, filtroHabitacionDTO.CantidadRegistrosPorPagina);
+
+            var habitaciones = await habitacionesQueryable.Paginar(filtroHabitacionDTO.Paginacion).ToListAsync();
+
+            return mapper.Map<List<HabitacionDTO>>(habitaciones);
+        }
+
         // Obtener habitacion por {numero}
         [HttpGet("{numero}", Name = "obtenerHabitacion")]
         public async Task<ActionResult<HabitacionDTO>> Get(int numero)
         {
-            var entidad = await context.Habitacions.FirstOrDefaultAsync(x => x.Numero == numero);
+            var entidad = await context.Habitaciones.FirstOrDefaultAsync(x => x.Numero == numero);
 
             if (entidad == null)
             {
@@ -54,7 +88,7 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] HabitacionDTO habitacionDTO)
         {
-            var existeHabitacionConElMismoNumero = await context.Habitacions.AnyAsync(x => x.Numero == habitacionDTO.Numero);
+            var existeHabitacionConElMismoNumero = await context.Habitaciones.AnyAsync(x => x.Numero == habitacionDTO.Numero);
 
             if (existeHabitacionConElMismoNumero)
             {
@@ -88,7 +122,7 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
                 return BadRequest();
             }
 
-            var habitacionDB = await context.Habitacions.FirstOrDefaultAsync(x => x.Numero == numero);
+            var habitacionDB = await context.Habitaciones.FirstOrDefaultAsync(x => x.Numero == numero);
 
             // Verifica si el nº de habitacion existe
             if (habitacionDB == null)
@@ -116,7 +150,7 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
         [HttpDelete("{numero}")]
         public async Task<ActionResult> Delete(int numero)
         {
-            var existe = await context.Habitacions.AnyAsync(x => x.Numero == numero);
+            var existe = await context.Habitaciones.AnyAsync(x => x.Numero == numero);
 
             if (!existe)
             {

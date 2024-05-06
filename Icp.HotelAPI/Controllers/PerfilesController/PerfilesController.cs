@@ -24,7 +24,7 @@ namespace Icp.HotelAPI.Controllers.PerfilesController
         [HttpGet]
         public async Task<ActionResult<List<PerfilDTO>>> Get()
         {
-            var entidades = await context.Perfils.ToListAsync();
+            var entidades = await context.Perfiles.ToListAsync();
             var dtos = mapper.Map<List<PerfilDTO>>(entidades);
             return dtos;
         }
@@ -33,7 +33,7 @@ namespace Icp.HotelAPI.Controllers.PerfilesController
         [HttpGet("{id}", Name = "obtenerPerfil")]
         public async Task<ActionResult<PerfilDTO>> Get(int id)
         {
-            var entidad = await context.Perfils.FirstOrDefaultAsync(x => x.Id == id);
+            var entidad = await context.Perfiles.FirstOrDefaultAsync(x => x.Id == id);
 
             if (entidad == null)
             {
@@ -48,7 +48,7 @@ namespace Icp.HotelAPI.Controllers.PerfilesController
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] PerfilCreacionDTO perfilCreacionDTO)
         {
-            var existeTipo = await context.Perfils.AnyAsync(x => x.Tipo == perfilCreacionDTO.Tipo);
+            var existeTipo = await context.Perfiles.AnyAsync(x => x.Tipo == perfilCreacionDTO.Tipo);
 
             if (existeTipo)
             {
@@ -77,7 +77,7 @@ namespace Icp.HotelAPI.Controllers.PerfilesController
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var existe = await context.Perfils.AnyAsync(x => x.Id == id);
+            var existe = await context.Perfiles.AnyAsync(x => x.Id == id);
 
             if (!existe)
             {

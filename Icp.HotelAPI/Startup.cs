@@ -1,6 +1,8 @@
 ﻿using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
+using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocal.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocalService;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -22,7 +24,7 @@ namespace Icp.HotelAPI
             services.AddHttpContextAccessor();
 
             // Configuración de AutoMapper
-            services.AddAutoMapper(typeof(Startup)); 
+            services.AddAutoMapper(typeof(Startup));
 
             // Configuración de la conexión
             services.AddDbContext<FCT_ABR_11Context>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));

@@ -5,9 +5,9 @@ namespace Icp.HotelAPI
 {
     public partial class TipoCama
     {
-        public byte NumeroHabitacion { get; set; }
-        public string TipoCama1 { get; set; }
+        public int IdCategoria { get; set; }
+        public string Tipo { get; set; }
 
-        public virtual Habitacion NumeroHabitacionNavigation { get; set; }
+        public virtual Categorium IdCategoriaNavigation { get; set; }
     }
 }

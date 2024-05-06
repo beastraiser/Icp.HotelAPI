@@ -7,14 +7,12 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
     {
         public Perfil()
         {
-            Permisos = new HashSet<Permiso>();
             Usuarios = new HashSet<Usuario>();
         }
 
         public int Id { get; set; }
         public string Tipo { get; set; }
 
-        public virtual ICollection<Permiso> Permisos { get; set; }
         public virtual ICollection<Usuario> Usuarios { get; set; }
     }
 }

@@ -7,7 +7,8 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
     {
         public Categoria()
         {
-            Habitacions = new HashSet<Habitacion>();
+            Habitaciones = new HashSet<Habitacion>();
+            TipoCamas = new HashSet<TipoCama>();
         }
 
         public int Id { get; set; }
@@ -17,6 +18,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
         public decimal CosteNoche { get; set; }
         public string Foto { get; set; }
 
-        public virtual ICollection<Habitacion> Habitacions { get; set; }
+        public virtual ICollection<Habitacion> Habitaciones { get; set; }
+        public virtual ICollection<TipoCama> TipoCamas { get; set; }
     }
 }

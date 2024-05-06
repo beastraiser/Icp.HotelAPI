@@ -20,7 +20,6 @@ namespace Icp.HotelAPI
         public virtual DbSet<Cliente> Clientes { get; set; }
         public virtual DbSet<Habitacion> Habitacions { get; set; }
         public virtual DbSet<Perfil> Perfils { get; set; }
-        public virtual DbSet<Permiso> Permisos { get; set; }
         public virtual DbSet<Reserva> Reservas { get; set; }
         public virtual DbSet<ReservaHabitacionServicio> ReservaHabitacionServicios { get; set; }
         public virtual DbSet<Servicio> Servicios { get; set; }
@@ -34,11 +33,11 @@ namespace Icp.HotelAPI
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-//            if (!optionsBuilder.IsConfigured)
-//            {
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-//                optionsBuilder.UseSqlServer("Server=ps17;Database=FCT_ABR_11;Trusted_Connection=True;");
-//            }
+            if (!optionsBuilder.IsConfigured)
+            {
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+                optionsBuilder.UseSqlServer("Server=ps17;Database=FCT_ABR_11;Trusted_Connection=True;");
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -47,7 +46,7 @@ namespace Icp.HotelAPI
             {
                 entity.ToTable("CATEGORIA");
 
-                entity.HasIndex(e => e.Tipo, "UQ__CATEGORI__B6FCAAA29009D382")
+                entity.HasIndex(e => e.Tipo, "UQ__CATEGORI__B6FCAAA21368DE35")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
@@ -76,7 +75,7 @@ namespace Icp.HotelAPI
             {
                 entity.ToTable("CLIENTE");
 
-                entity.HasIndex(e => e.Dni, "UQ__CLIENTE__C035B8DD36AC1F74")
+                entity.HasIndex(e => e.Dni, "UQ__CLIENTE__C035B8DDF99167F4")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
@@ -111,21 +110,21 @@ namespace Icp.HotelAPI
             modelBuilder.Entity<Habitacion>(entity =>
             {
                 entity.HasKey(e => e.Numero)
-                    .HasName("PK__HABITACI__7500EDCAC38FB88F");
+                    .HasName("PK__HABITACI__7500EDCA110024E5");
 
                 entity.ToTable("HABITACION");
 
                 entity.Property(e => e.Numero).HasColumnName("NUMERO");
 
-                entity.Property(e => e.Categoria).HasColumnName("CATEGORIA");
-
                 entity.Property(e => e.Disponibilidad).HasColumnName("DISPONIBILIDAD");
 
-                entity.HasOne(d => d.CategoriaNavigation)
+                entity.Property(e => e.IdCategoria).HasColumnName("ID_CATEGORIA");
+
+                entity.HasOne(d => d.IdCategoriaNavigation)
                     .WithMany(p => p.Habitacions)
-                    .HasForeignKey(d => d.Categoria)
+                    .HasForeignKey(d => d.IdCategoria)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_CATEGORIA_HABITACION");
+                    .HasConstraintName("FK_ID_CATEGORIA_HABITACION");
             });
 
             modelBuilder.Entity<Perfil>(entity =>
@@ -139,27 +138,6 @@ namespace Icp.HotelAPI
                     .HasMaxLength(255)
                     .IsUnicode(false)
                     .HasColumnName("TIPO");
-            });
-
-            modelBuilder.Entity<Permiso>(entity =>
-            {
-                entity.HasKey(e => new { e.IdPerfil, e.Permiso1 })
-                    .HasName("PK__PERMISO__E57DEA5DD55C003F");
-
-                entity.ToTable("PERMISO");
-
-                entity.Property(e => e.IdPerfil).HasColumnName("ID_PERFIL");
-
-                entity.Property(e => e.Permiso1)
-                    .HasMaxLength(255)
-                    .IsUnicode(false)
-                    .HasColumnName("PERMISO");
-
-                entity.HasOne(d => d.IdPerfilNavigation)
-                    .WithMany(p => p.Permisos)
-                    .HasForeignKey(d => d.IdPerfil)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_PERFIL_PERMISO");
             });
 
             modelBuilder.Entity<Reserva>(entity =>
@@ -200,7 +178,7 @@ namespace Icp.HotelAPI
             modelBuilder.Entity<ReservaHabitacionServicio>(entity =>
             {
                 entity.HasKey(e => new { e.IdReserva, e.NumeroHabitacion, e.IdServicio })
-                    .HasName("PK__RESERVA___5E571059F34C0D02");
+                    .HasName("PK__RESERVA___5E5710599255A6D1");
 
                 entity.ToTable("RESERVA_HABITACION_SERVICIO");
 
@@ -252,23 +230,23 @@ namespace Icp.HotelAPI
 
             modelBuilder.Entity<TipoCama>(entity =>
             {
-                entity.HasKey(e => new { e.NumeroHabitacion, e.TipoCama1 })
-                    .HasName("PK__TIPO_CAM__6C04A732871B9506");
+                entity.HasKey(e => new { e.IdCategoria, e.Tipo })
+                    .HasName("PK__TIPO_CAM__60BAD50FA63098DD");
 
                 entity.ToTable("TIPO_CAMA");
 
-                entity.Property(e => e.NumeroHabitacion).HasColumnName("NUMERO_HABITACION");
+                entity.Property(e => e.IdCategoria).HasColumnName("ID_CATEGORIA");
 
-                entity.Property(e => e.TipoCama1)
+                entity.Property(e => e.Tipo)
                     .HasMaxLength(255)
                     .IsUnicode(false)
-                    .HasColumnName("TIPO_CAMA");
+                    .HasColumnName("TIPO");
 
-                entity.HasOne(d => d.NumeroHabitacionNavigation)
+                entity.HasOne(d => d.IdCategoriaNavigation)
                     .WithMany(p => p.TipoCamas)
-                    .HasForeignKey(d => d.NumeroHabitacion)
+                    .HasForeignKey(d => d.IdCategoria)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_HABITACION_TIPO_CAMA");
+                    .HasConstraintName("FK_ID_CATEGORIA_TIPO_CAMA");
             });
 
             modelBuilder.Entity<Usuario>(entity =>

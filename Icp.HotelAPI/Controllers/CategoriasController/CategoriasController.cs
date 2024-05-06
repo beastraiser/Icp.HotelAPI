@@ -30,7 +30,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
         [HttpGet]
         public async Task<ActionResult<List<CategoriaDTO>>> Get()
         {
-            var entidades = await context.Categoria.ToListAsync();
+            var entidades = await context.Categorias.ToListAsync();
             var dtos = mapper.Map<List<CategoriaDTO>>(entidades);
             return dtos;
         }
@@ -39,7 +39,8 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
         [HttpGet("{id}", Name = "obtenerCategoria")]
         public async Task<ActionResult<CategoriaDTO>> Get(int id)
         {
-            var entidad = await context.Categoria.FirstOrDefaultAsync(x => x.Id == id);
+            var entidad = await context.Categorias
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (entidad == null)
             {
@@ -54,7 +55,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
         [HttpPost]
         public async Task<ActionResult> Post([FromForm] CategoriaCreacionDTO categoriaCreacionDTO)
         {
-            var existeTipo = await context.Categoria.AnyAsync(x => x.Tipo == categoriaCreacionDTO.Tipo);
+            var existeTipo = await context.Categorias.AnyAsync(x => x.Tipo == categoriaCreacionDTO.Tipo);
 
             if (existeTipo)
             {
@@ -66,7 +67,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
             // Lógica para subir una foto
             if (categoriaCreacionDTO.Foto != null)
             {
-                using(var memoryStream = new MemoryStream())
+                using (var memoryStream = new MemoryStream())
                 {
                     await categoriaCreacionDTO.Foto.CopyToAsync(memoryStream);
                     var contenido = memoryStream.ToArray();
@@ -85,7 +86,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
         [HttpPut("{id}")]
         public async Task<ActionResult> Put(int id, [FromForm] CategoriaCreacionDTO categoriaCreacionDTO)
         {
-            var categoriaDB = await context.Categoria.FirstOrDefaultAsync(x => x.Id == id);
+            var categoriaDB = await context.Categorias.FirstOrDefaultAsync(x => x.Id == id);
 
             if (categoriaDB == null)
             {
@@ -120,7 +121,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
                 return BadRequest();
             }
 
-            var categoriaDB = await context.Categoria.FirstOrDefaultAsync(x => x.Id == id);
+            var categoriaDB = await context.Categorias.FirstOrDefaultAsync(x => x.Id == id);
 
             // Verifica si el id de categoria existe
             if (categoriaDB == null)
@@ -148,7 +149,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var entidad = await context.Categoria.FirstOrDefaultAsync(x => x.Id == id);
+            var entidad = await context.Categorias.FirstOrDefaultAsync(x => x.Id == id);
 
             if (entidad == null)
             {

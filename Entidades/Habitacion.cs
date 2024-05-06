@@ -8,15 +8,13 @@ namespace Icp.HotelAPI
         public Habitacion()
         {
             ReservaHabitacionServicios = new HashSet<ReservaHabitacionServicio>();
-            TipoCamas = new HashSet<TipoCama>();
         }
 
         public byte Numero { get; set; }
-        public int Categoria { get; set; }
+        public int IdCategoria { get; set; }
         public bool Disponibilidad { get; set; }
 
-        public virtual Categorium CategoriaNavigation { get; set; }
+        public virtual Categorium IdCategoriaNavigation { get; set; }
         public virtual ICollection<ReservaHabitacionServicio> ReservaHabitacionServicios { get; set; }
-        public virtual ICollection<TipoCama> TipoCamas { get; set; }
     }
 }
