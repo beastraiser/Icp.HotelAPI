@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Icp.HotelAPI.Controllers.TipoCamasController
 {
@@ -6,9 +8,13 @@ namespace Icp.HotelAPI.Controllers.TipoCamasController
     [Route("api/habitaciones")]
     public class TipoCamasController : ControllerBase
     {
-        public TipoCamasController()
+        private readonly FCT_ABR_11Context context;
+        private readonly IMapper mapper;
+
+        public TipoCamasController(FCT_ABR_11Context context, IMapper mapper)
         {
-            // hola
+            this.context = context;
+            this.mapper = mapper;
         }
     }
 }
