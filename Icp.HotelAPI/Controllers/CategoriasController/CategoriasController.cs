@@ -2,7 +2,7 @@
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.CategoriasController.DTO;
-using Icp.HotelAPI.Controllers.PerfilesController.DTO;
+using Icp.HotelAPI.Controllers.HabitacionesController.DTO;
 using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocal.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -12,21 +12,21 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
 {
     [ApiController]
     [Route("api/categorias")]
-    public class HabitacionesController : ControllerBase
+    public class CategoriasController : CustomBaseController.CustomBaseController
     {
         private readonly FCT_ABR_11Context context;
         private readonly IMapper mapper;
         private readonly IAlmacenadorArchivos almacenadorArchivos;
         private readonly string contenedor = "categorias";
 
-        public HabitacionesController(FCT_ABR_11Context context, IMapper mapper, IAlmacenadorArchivos almacenadorArchivos)
+        public CategoriasController(FCT_ABR_11Context context, IMapper mapper, IAlmacenadorArchivos almacenadorArchivos) : base(context, mapper)
         {
             this.context = context;
             this.mapper = mapper;
             this.almacenadorArchivos = almacenadorArchivos;
         }
 
-        // Obtener todas las categorias
+        // Obtener todas las categorias con tipo cama
         [HttpGet]
         public async Task<ActionResult<List<CategoriaDetallesDTO>>> Get()
         {
@@ -37,7 +37,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
             return dtos;
         }
 
-        // Obtener categoria por {id}
+        // Obtener categoria por {id} con tipo cama
         [HttpGet("{id}", Name = "obtenerCategoria")]
         public async Task<ActionResult<CategoriaDetallesDTO>> Get(int id)
         {
@@ -85,7 +85,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
             return new CreatedAtRouteResult("obtenerCategoria", entidadDTO);
         }
 
-        // Cambiar datos categoria por {id}
+        // Cambiar foto
         [HttpPut("{id}")]
         public async Task<ActionResult> Put(int id, [FromForm] CategoriaCreacionDTO categoriaCreacionDTO)
         {
@@ -115,37 +115,11 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
             return NoContent();
         }
 
-        // Cambiar foto
+        // Cambiar datos categoria por {id}
         [HttpPatch("{id}")]
         public async Task<ActionResult> Patch(int id, JsonPatchDocument<CategoriaPatchDTO> patchDocument)
         {
-            if (patchDocument == null)
-            {
-                return BadRequest();
-            }
-
-            var categoriaDB = await context.Categorias.FirstOrDefaultAsync(x => x.Id == id);
-
-            // Verifica si el id de categoria existe
-            if (categoriaDB == null)
-            {
-                return NotFound();
-            }
-
-            var categoriaDTO = mapper.Map<CategoriaPatchDTO>(categoriaDB);
-            patchDocument.ApplyTo(categoriaDTO, ModelState);
-
-            var esValido = TryValidateModel(categoriaDTO);
-
-            if (!esValido)
-            {
-                return BadRequest(ModelState);
-            }
-
-            mapper.Map(categoriaDTO, categoriaDB);
-
-            await context.SaveChangesAsync();
-            return NoContent();
+            return await Patch<Categoria, CategoriaPatchDTO>(id, patchDocument);
         }
 
         // Borrar categoria por {id}
