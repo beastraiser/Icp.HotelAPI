@@ -2,8 +2,8 @@
 
 namespace Icp.HotelAPI.Controllers.ReservasController.DTO
 {
-    public class ReservaDetallesDTO : ReservaDTO
+    public class ReservaDetallesDTO : ReservaCreacionDTO
     {
-        public List<ReservaHabitacionServicioDetallesDTO> HabitacionesServicios {  get; set; }
+        public List<ReservaHabitacionServicioDetallesDTO> ReservaHabitacionServicios {  get; set; }
     }
 }

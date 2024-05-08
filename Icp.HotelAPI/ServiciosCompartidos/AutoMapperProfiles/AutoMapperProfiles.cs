@@ -20,9 +20,11 @@ namespace Icp.HotelAPI.ServiciosCompartidos.Helpers
             CreateMap<PerfilCreacionDTO, Perfil>().ReverseMap();
 
             CreateMap<Categoria, CategoriaDTO>().ReverseMap();
-            CreateMap<CategoriaCreacionDTO, Categoria>().ReverseMap()
+            CreateMap<CategoriaCreacionDTO, Categoria>()
+                .ForMember(x => x.TipoCamas, options => options.Ignore())
                 // Lógica para que ignore el campo Foto
-                .ForMember(x => x.Foto, options => options.Ignore());
+                .ForMember(x => x.Foto, options => options.Ignore())
+                .ReverseMap();
             CreateMap<CategoriaPatchDTO, Categoria>().ReverseMap();
             CreateMap<Categoria, CategoriaDetallesDTO>()
                 .ForMember(x => x.TipoCamas, options => options.MapFrom(MapCategoriaTipoCamas));
@@ -30,7 +32,9 @@ namespace Icp.HotelAPI.ServiciosCompartidos.Helpers
             CreateMap<TipoCama, TipoCamaDTO>().ReverseMap();
 
             CreateMap<Reserva, ReservaDetallesDTO>()
-                .ForMember(x => x.HabitacionesServicios, options => options.MapFrom(MapReservaHabitacionServicio));
+                .ForMember(x => x.ReservaHabitacionServicios, options => options.MapFrom(MapReservaHabitacionServicio));
+            CreateMap<ReservaDetallesDTO, Reserva>()
+                .ForMember(x => x.ReservaHabitacionServicios, options => options.Ignore());
 
             CreateMap<ReservaHabitacionServicio, ReservaHabitacionServicioDTO>().ReverseMap();
         }

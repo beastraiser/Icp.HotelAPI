@@ -54,11 +54,12 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
             return dto;
         }
 
-        // Introducir una nueva categoria
+        // Introducir una nueva categoria con tipos de cama
         [HttpPost]
         public async Task<ActionResult> Post([FromForm] CategoriaCreacionDTO categoriaCreacionDTO)
         {
-            var existeTipo = await context.Categorias.AnyAsync(x => x.Tipo == categoriaCreacionDTO.Tipo);
+            var existeTipo = await context.Categorias
+                .AnyAsync(x => x.Tipo == categoriaCreacionDTO.Tipo);
 
             if (existeTipo)
             {
@@ -81,8 +82,22 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
 
             context.Add(entidad);
             await context.SaveChangesAsync();
-            var entidadDTO = mapper.Map<CategoriaDTO>(entidad);
-            return new CreatedAtRouteResult("obtenerCategoria", entidadDTO);
+
+            foreach (var tipoCamaDTO in categoriaCreacionDTO.TipoCamas)
+            {
+                var tipoCama = new TipoCama
+                {
+                    IdCategoria = entidad.Id,
+                    Tipo = tipoCamaDTO.Tipo
+                };
+
+                context.TipoCamas.Add(tipoCama);
+            }
+
+            await context.SaveChangesAsync();
+
+            var entidadDTO = mapper.Map<CategoriaDetallesDTO>(entidad);
+            return new CreatedAtRouteResult("obtenerCategoria", new { id = entidad.Id }, entidadDTO);
         }
 
         // Cambiar foto
@@ -122,7 +137,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
             return await Patch<Categoria, CategoriaPatchDTO>(id, patchDocument);
         }
 
-        // Borrar categoria por {id}
+        // Borrar categoria y tipos de cama por {id}
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
@@ -133,9 +148,16 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
                 return NotFound();
             }
 
+            var tipoCamas = await context.TipoCamas
+                .Where(tc => tc.IdCategoria == id)
+                .ToListAsync();
+
             // Borra la foto de wwwroot
             await almacenadorArchivos.BorrarArchivo(entidad.Foto, contenedor);
-            context.Remove(entidad);
+
+            context.TipoCamas.RemoveRange(tipoCamas);
+            context.Categorias.Remove(entidad);
+
             await context.SaveChangesAsync();
             return NoContent();
         }

@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
+using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.CategoriasController.DTO;
 using Icp.HotelAPI.Controllers.ReservasController.DTO;
+using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocal.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,6 +48,46 @@ namespace Icp.HotelAPI.Controllers.ReservasController
 
             var dto = mapper.Map<ReservaDetallesDTO>(entidad);
             return dto;
+        }
+
+        // Agregar reserva con habitaciones y servicios
+        [HttpPost]
+        public async Task<ActionResult> Post([FromForm] ReservaDetallesDTO reservaDetallesDTO)
+        {
+            var habitacionesSolicitadas = reservaDetallesDTO.ReservaHabitacionServicios.Select(hs => hs.IdHabitacion).ToList();
+
+            var existe = await context.ReservaHabitacionServicios
+                .Where(rhs => habitacionesSolicitadas.Contains(rhs.IdHabitacion) &&
+                      reservaDetallesDTO.FechaInicio >= rhs.IdReservaNavigation.FechaInicio &&
+                      reservaDetallesDTO.FechaFin <= rhs.IdReservaNavigation.FechaFin)
+                .AnyAsync();
+
+            if (existe)
+            {
+                return BadRequest("Una o más habitaciones solicitadas ya están reservadas en las fechas indicadas.");
+            }
+
+            var entidad = mapper.Map<Reserva>(reservaDetallesDTO);
+
+            context.Add(entidad);
+            await context.SaveChangesAsync();
+
+            foreach (var rhs in reservaDetallesDTO.ReservaHabitacionServicios)
+            {
+                var nuevaReserva = new ReservaHabitacionServicio
+                {
+                    IdReserva = entidad.Id,
+                    IdHabitacion = rhs.IdHabitacion,
+                    IdServicio = rhs.IdServicio
+                };
+
+                context.ReservaHabitacionServicios.Add(nuevaReserva);
+            }
+
+            await context.SaveChangesAsync();
+
+            var entidadDTO = mapper.Map<ReservaDetallesDTO>(entidad);
+            return new CreatedAtRouteResult("obtenerReserva", new { id = entidad.Id }, entidadDTO);
         }
     }
 }
