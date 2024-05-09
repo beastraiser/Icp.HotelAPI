@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.CategoriasController.DTO;
+using Icp.HotelAPI.Controllers.ClientesController.DTO;
 using Icp.HotelAPI.Controllers.HabitacionesController.DTO;
 using Icp.HotelAPI.Controllers.PerfilesController.DTO;
 using Icp.HotelAPI.Controllers.ReservasController.DTO;
@@ -15,6 +16,9 @@ namespace Icp.HotelAPI.ServiciosCompartidos.Helpers
         {
             CreateMap<Habitacion, HabitacionDTO>().ReverseMap();
             CreateMap<HabitacionPatchDTO, Habitacion>().ReverseMap();
+
+            CreateMap<Cliente, ClienteDTO>().ReverseMap();
+            CreateMap<ClienteCreacionDTO, Cliente>().ReverseMap();
 
             CreateMap<Perfil, PerfilDTO>().ReverseMap();
             CreateMap<PerfilCreacionDTO, Perfil>().ReverseMap();

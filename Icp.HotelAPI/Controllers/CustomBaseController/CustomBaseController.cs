@@ -68,7 +68,7 @@ namespace Icp.HotelAPI.Controllers.CustomBaseController
 
             if (existe)
             {
-                return BadRequest($"Ya existe una habitación con el número {id}");
+                return BadRequest($"Ya existe un registro con el id: {id}");
             }
 
             var entidad = mapper.Map<TEntidad>(creacionDTO);
