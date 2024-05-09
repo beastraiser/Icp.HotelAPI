@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
-using Icp.HotelAPI.Controllers.CategoriasController.DTO;
 using Icp.HotelAPI.Controllers.HabitacionesController.DTO;
 using Icp.HotelAPI.ServiciosCompartidos.PaginacionDTO;
 using Icp.HotelAPI.ServiciosCompartidos.PaginacionDTO.Helpers;
@@ -13,40 +12,36 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 {
     [ApiController]
     [Route("api/habitaciones")]
-    public class HabitacionesController : ControllerBase
+    public class HabitacionesController : CustomBaseController.CustomBaseController
     {
         private readonly FCT_ABR_11Context context;
         private readonly IMapper mapper;
 
-        public HabitacionesController(FCT_ABR_11Context context, IMapper mapper)
+        public HabitacionesController(FCT_ABR_11Context context, IMapper mapper) : base(context, mapper)
         {
             this.context = context;
             this.mapper = mapper;
         }
 
-        // Obtener todas las habitaciones sin paginación
+        // Obtener todas las habitaciones
         [HttpGet]
         public async Task<ActionResult<List<HabitacionDTO>>> Get2()
         {
-            var entidades = await context.Habitaciones.ToListAsync();
-            var dtos = mapper.Map<List<HabitacionDTO>>(entidades);
-            return dtos;
+            return await Get<Habitacion, HabitacionDTO>();
+        }
+
+        // Obtener habitacion por {id}
+        [HttpGet("{id}", Name = "obtenerHabitacion")]
+        public async Task<ActionResult<HabitacionDTO>> Get(int id)
+        {
+            return await Get<Habitacion, HabitacionDTO>(id);
         }
 
         // Obtener todas las habitaciones disponibles con paginación (10 resultados máximo por página)
         [HttpGet("disponibles")]
         public async Task<ActionResult<List<HabitacionDTO>>> Get([FromQuery] PaginacionDTO paginacionDTO)
         {
-            var disponible = context.Habitaciones
-                .Where(x => x.Disponibilidad == true)
-                .AsQueryable();
-
-            var queryable = disponible.AsQueryable();
-            await HttpContext.InsertarParametrosPaginacion(queryable, paginacionDTO.CantidadRegistrosPorPagina);
-
-            var entidades = await queryable.Paginar(paginacionDTO).ToListAsync();
-            var dtos = mapper.Map<List<HabitacionDTO>>(entidades);
-            return dtos;
+            return await Get<Habitacion, HabitacionDTO>(paginacionDTO);
         }
 
         // Filtro por categoria y disponibilidad = true
@@ -69,97 +64,32 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
             return mapper.Map<List<HabitacionDTO>>(habitaciones);
         }
 
-        // Obtener habitacion por {numero}
-        [HttpGet("{numero}", Name = "obtenerHabitacion")]
-        public async Task<ActionResult<HabitacionDTO>> Get(int numero)
-        {
-            var entidad = await context.Habitaciones.FirstOrDefaultAsync(x => x.Numero == numero);
-
-            if (entidad == null)
-            {
-                return NotFound();
-            }
-
-            var dto = mapper.Map<HabitacionDTO>(entidad);
-            return dto;
-        }
-
         // Introducir una nueva habitacion
-        [HttpPost]
-        public async Task<ActionResult> Post([FromBody] HabitacionDTO habitacionDTO)
+        [HttpPost("{id}")]
+        public async Task<ActionResult> Post([FromBody] HabitacionDTO habitacionDTO, int id)
         {
-            var existeHabitacionConElMismoNumero = await context.Habitaciones.AnyAsync(x => x.Numero == habitacionDTO.Numero);
-
-            if (existeHabitacionConElMismoNumero)
-            {
-                return BadRequest($"Ya existe una habitación con el número {habitacionDTO.Numero}");
-            }
-
-            var entidad = mapper.Map<Habitacion>(habitacionDTO);
-            context.Add(entidad);
-            await context.SaveChangesAsync();
-            var entidadDTO = mapper.Map<HabitacionDTO>(entidad);
-            return new CreatedAtRouteResult("obtenerHabitacion", entidadDTO);
+            return await Post<HabitacionDTO, Habitacion, HabitacionDTO>(habitacionDTO, "obtenerHabitacion", id);
         }
 
         // Cambiar datos habitacion
-        [HttpPut("{numero}")]
-        public async Task<ActionResult> CambiarCategoria(int numero, [FromBody] HabitacionDTO habitacionDTO)
+        [HttpPut("{id}")]
+        public async Task<ActionResult> Put(int id, [FromBody] HabitacionPatchDTO habitacionDTO)
         {
-            var entidad = mapper.Map<Habitacion>(habitacionDTO);
-            entidad.Numero = (byte)numero;
-            context.Entry(entidad).State = EntityState.Modified;
-            await context.SaveChangesAsync();
-            return NoContent();
+            return await Put<HabitacionPatchDTO, Habitacion>(habitacionDTO, id);
         }
 
         // Cambiar disponibilidad/categoria
-        [HttpPatch("{numero}")]
-        public async Task<ActionResult> PatchDisponibilidad(int numero, JsonPatchDocument<HabitacionPatchDTO> patchDocument)
+        [HttpPatch("{id}")]
+        public async Task<ActionResult> Patch(int id, JsonPatchDocument<HabitacionPatchDTO> patchDocument)
         {
-            if (patchDocument == null)
-            {
-                return BadRequest();
-            }
-
-            var habitacionDB = await context.Habitaciones.FirstOrDefaultAsync(x => x.Numero == numero);
-
-            // Verifica si el nº de habitacion existe
-            if (habitacionDB == null)
-            {
-                return NotFound();
-            }
-
-            var habitacionDTO = mapper.Map<HabitacionPatchDTO>(habitacionDB);
-            patchDocument.ApplyTo(habitacionDTO, ModelState);
-
-            var esValido = TryValidateModel(habitacionDTO);
-
-            if (!esValido)
-            {
-                return BadRequest(ModelState);
-            }
-
-            mapper.Map(habitacionDTO, habitacionDB);
-
-            await context.SaveChangesAsync();
-            return NoContent();
+            return await Patch<Habitacion, HabitacionPatchDTO>(id, patchDocument);
         }
 
         // Borrar habitacion
-        [HttpDelete("{numero}")]
-        public async Task<ActionResult> Delete(int numero)
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> Delete(int id)
         {
-            var existe = await context.Habitaciones.AnyAsync(x => x.Numero == numero);
-
-            if (!existe)
-            {
-                return NotFound();
-            }
-
-            context.Remove(new Habitacion() { Numero = (byte)numero });
-            await context.SaveChangesAsync();
-            return NoContent();
+            return await Delete<Habitacion>(id);
         }
     }
 }
