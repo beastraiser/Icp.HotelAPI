@@ -3,6 +3,5 @@
     public class ReservaDTO : ReservaCreacionDTO
     {
         public int Id { get; set; }
-        
     }
 }
