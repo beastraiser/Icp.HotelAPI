@@ -1,10 +1,9 @@
-﻿using Icp.HotelAPI.Controllers.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
 {
-    public partial class Cliente: IId
+    public partial class Cliente
     {
         public Cliente()
         {
@@ -17,6 +16,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
         public string Nombre { get; set; }
         public string Apellidos { get; set; }
 
+        public virtual ClienteUsuario ClienteUsuario { get; set; }
         public virtual ICollection<Reserva> Reservas { get; set; }
     }
 }
