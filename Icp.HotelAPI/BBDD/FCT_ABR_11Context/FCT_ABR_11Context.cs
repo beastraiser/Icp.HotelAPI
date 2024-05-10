@@ -19,6 +19,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
 
         public virtual DbSet<Categoria> Categorias { get; set; }
         public virtual DbSet<Cliente> Clientes { get; set; }
+        public virtual DbSet<ClienteUsuario> ClienteUsuarios { get; set; }
         public virtual DbSet<Habitacion> Habitaciones { get; set; }
         public virtual DbSet<Perfil> Perfiles { get; set; }
         public virtual DbSet<Reserva> Reservas { get; set; }
@@ -33,7 +34,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             {
                 entity.ToTable("CATEGORIA");
 
-                entity.HasIndex(e => e.Tipo, "UQ__CATEGORI__B6FCAAA2920602F4")
+                entity.HasIndex(e => e.Tipo, "UQ__CATEGORI__B6FCAAA20E5BE2F8")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
@@ -62,7 +63,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             {
                 entity.ToTable("CLIENTE");
 
-                entity.HasIndex(e => e.Dni, "UQ__CLIENTE__C035B8DD79C3C597")
+                entity.HasIndex(e => e.Dni, "UQ__CLIENTE__C035B8DD62B736F7")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
@@ -88,10 +89,40 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
 
                 entity.Property(e => e.Telefono)
                     .IsRequired()
-                    .HasMaxLength(9)
+                    .HasMaxLength(11)
                     .IsUnicode(false)
                     .HasColumnName("TELEFONO")
                     .IsFixedLength();
+            });
+
+            modelBuilder.Entity<ClienteUsuario>(entity =>
+            {
+                entity.HasKey(e => new { e.IdCliente, e.IdUsuario })
+                    .HasName("PK__CLIENTE___3AB2778971B073CD");
+
+                entity.ToTable("CLIENTE_USUARIO");
+
+                entity.HasIndex(e => e.IdCliente, "UQ__CLIENTE___23A34131606037CE")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.IdUsuario, "UQ__CLIENTE___91136B91FEAE0CDD")
+                    .IsUnique();
+
+                entity.Property(e => e.IdCliente).HasColumnName("ID_CLIENTE");
+
+                entity.Property(e => e.IdUsuario).HasColumnName("ID_USUARIO");
+
+                entity.HasOne(d => d.IdClienteNavigation)
+                    .WithOne(p => p.ClienteUsuario)
+                    .HasForeignKey<ClienteUsuario>(d => d.IdCliente)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_CLIENTE_USUARIO_CLIENTE");
+
+                entity.HasOne(d => d.IdUsuarioNavigation)
+                    .WithOne(p => p.ClienteUsuario)
+                    .HasForeignKey<ClienteUsuario>(d => d.IdUsuario)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_CLIENTE_USUARIO_USUARIO");
             });
 
             modelBuilder.Entity<Habitacion>(entity =>
@@ -116,6 +147,9 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             modelBuilder.Entity<Perfil>(entity =>
             {
                 entity.ToTable("PERFIL");
+
+                entity.HasIndex(e => e.Tipo, "UQ__PERFIL__B6FCAAA272784B1B")
+                    .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
 
@@ -164,7 +198,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             modelBuilder.Entity<ReservaHabitacionServicio>(entity =>
             {
                 entity.HasKey(e => new { e.IdReserva, e.IdHabitacion, e.IdServicio })
-                    .HasName("PK__RESERVA___EFA0D39673DD69C5");
+                    .HasName("PK__RESERVA___EFA0D396279BB62B");
 
                 entity.ToTable("RESERVA_HABITACION_SERVICIO");
 
@@ -197,6 +231,9 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             {
                 entity.ToTable("SERVICIO");
 
+                entity.HasIndex(e => e.Tipo, "UQ__SERVICIO__B6FCAAA274DD9DCF")
+                    .IsUnique();
+
                 entity.Property(e => e.Id).HasColumnName("ID");
 
                 entity.Property(e => e.Coste)
@@ -217,7 +254,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             modelBuilder.Entity<TipoCama>(entity =>
             {
                 entity.HasKey(e => new { e.IdCategoria, e.Tipo })
-                    .HasName("PK__TIPO_CAM__60BAD50F38C09C9F");
+                    .HasName("PK__TIPO_CAM__60BAD50FEFDF048F");
 
                 entity.ToTable("TIPO_CAMA");
 
@@ -238,6 +275,9 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             modelBuilder.Entity<Usuario>(entity =>
             {
                 entity.ToTable("USUARIO");
+
+                entity.HasIndex(e => e.Email, "UQ__USUARIO__161CF724B3FF1408")
+                    .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
 
