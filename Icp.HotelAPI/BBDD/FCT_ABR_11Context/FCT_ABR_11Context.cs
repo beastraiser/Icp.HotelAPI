@@ -27,6 +27,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
         public virtual DbSet<Servicio> Servicios { get; set; }
         public virtual DbSet<TipoCama> TipoCamas { get; set; }
         public virtual DbSet<Usuario> Usuarios { get; set; }
+        public virtual DbSet<VClienteUsuario> VClienteUsuarios { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,7 +35,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             {
                 entity.ToTable("CATEGORIA");
 
-                entity.HasIndex(e => e.Tipo, "UQ__CATEGORI__B6FCAAA20E5BE2F8")
+                entity.HasIndex(e => e.Tipo, "UQ__CATEGORI__B6FCAAA2EAB04AA3")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
@@ -63,7 +64,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             {
                 entity.ToTable("CLIENTE");
 
-                entity.HasIndex(e => e.Dni, "UQ__CLIENTE__C035B8DD62B736F7")
+                entity.HasIndex(e => e.Dni, "UQ__CLIENTE__C035B8DD98531A84")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
@@ -98,14 +99,14 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             modelBuilder.Entity<ClienteUsuario>(entity =>
             {
                 entity.HasKey(e => new { e.IdCliente, e.IdUsuario })
-                    .HasName("PK__CLIENTE___3AB2778971B073CD");
+                    .HasName("PK__CLIENTE___3AB27789C0ADF807");
 
                 entity.ToTable("CLIENTE_USUARIO");
 
-                entity.HasIndex(e => e.IdCliente, "UQ__CLIENTE___23A34131606037CE")
+                entity.HasIndex(e => e.IdCliente, "UQ__CLIENTE___23A341314B74F9BF")
                     .IsUnique();
 
-                entity.HasIndex(e => e.IdUsuario, "UQ__CLIENTE___91136B91FEAE0CDD")
+                entity.HasIndex(e => e.IdUsuario, "UQ__CLIENTE___91136B91B0D58E9B")
                     .IsUnique();
 
                 entity.Property(e => e.IdCliente).HasColumnName("ID_CLIENTE");
@@ -148,7 +149,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             {
                 entity.ToTable("PERFIL");
 
-                entity.HasIndex(e => e.Tipo, "UQ__PERFIL__B6FCAAA272784B1B")
+                entity.HasIndex(e => e.Tipo, "UQ__PERFIL__B6FCAAA20DF7313E")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
@@ -198,7 +199,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             modelBuilder.Entity<ReservaHabitacionServicio>(entity =>
             {
                 entity.HasKey(e => new { e.IdReserva, e.IdHabitacion, e.IdServicio })
-                    .HasName("PK__RESERVA___EFA0D396279BB62B");
+                    .HasName("PK__RESERVA___EFA0D3968C291F62");
 
                 entity.ToTable("RESERVA_HABITACION_SERVICIO");
 
@@ -231,7 +232,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             {
                 entity.ToTable("SERVICIO");
 
-                entity.HasIndex(e => e.Tipo, "UQ__SERVICIO__B6FCAAA274DD9DCF")
+                entity.HasIndex(e => e.Tipo, "UQ__SERVICIO__B6FCAAA209C077FE")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
@@ -254,7 +255,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             modelBuilder.Entity<TipoCama>(entity =>
             {
                 entity.HasKey(e => new { e.IdCategoria, e.Tipo })
-                    .HasName("PK__TIPO_CAM__60BAD50FEFDF048F");
+                    .HasName("PK__TIPO_CAM__60BAD50FA7F16A47");
 
                 entity.ToTable("TIPO_CAMA");
 
@@ -276,7 +277,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             {
                 entity.ToTable("USUARIO");
 
-                entity.HasIndex(e => e.Email, "UQ__USUARIO__161CF724B3FF1408")
+                entity.HasIndex(e => e.Email, "UQ__USUARIO__161CF7249F027F87")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
@@ -297,13 +298,70 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
                     .HasColumnType("date")
                     .HasColumnName("FECHA_REGISTRO");
 
-                entity.Property(e => e.IdPerfil).HasColumnName("ID_PERFIL");
+                entity.Property(e => e.IdPerfil)
+                    .HasColumnName("ID_PERFIL")
+                    .HasDefaultValueSql("((4))");
 
                 entity.HasOne(d => d.IdPerfilNavigation)
                     .WithMany(p => p.Usuarios)
                     .HasForeignKey(d => d.IdPerfil)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_PERFIL_USUARIO");
+            });
+
+            modelBuilder.Entity<VClienteUsuario>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.ToView("V_CLIENTE_USUARIO");
+
+                entity.Property(e => e.Apellidos)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false)
+                    .HasColumnName("APELLIDOS");
+
+                entity.Property(e => e.Contrasenya)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false)
+                    .HasColumnName("CONTRASENYA");
+
+                entity.Property(e => e.Dni)
+                    .IsRequired()
+                    .HasMaxLength(9)
+                    .IsUnicode(false)
+                    .HasColumnName("DNI")
+                    .IsFixedLength();
+
+                entity.Property(e => e.Email)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false)
+                    .HasColumnName("EMAIL");
+
+                entity.Property(e => e.FechaRegistro)
+                    .HasColumnType("date")
+                    .HasColumnName("FECHA_REGISTRO");
+
+                entity.Property(e => e.IdCliente).HasColumnName("ID_CLIENTE");
+
+                entity.Property(e => e.IdPerfil).HasColumnName("ID_PERFIL");
+
+                entity.Property(e => e.IdUsuario).HasColumnName("ID_USUARIO");
+
+                entity.Property(e => e.Nombre)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false)
+                    .HasColumnName("NOMBRE");
+
+                entity.Property(e => e.Telefono)
+                    .IsRequired()
+                    .HasMaxLength(11)
+                    .IsUnicode(false)
+                    .HasColumnName("TELEFONO")
+                    .IsFixedLength();
             });
 
             OnModelCreatingPartial(modelBuilder);
