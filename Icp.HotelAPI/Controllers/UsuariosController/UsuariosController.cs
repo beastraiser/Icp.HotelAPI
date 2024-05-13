@@ -1,15 +1,15 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
-using Icp.HotelAPI.Controllers.ReservasController.DTO;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Icp.HotelAPI.Controllers.UsuariosController.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace Icp.HotelAPI.Controllers.UsuariosController
 {
     [ApiController]
-    [Route("api/reservas")]
+    [Route("api/usuarios")]
     public class UsuariosController : CustomBaseController.CustomBaseController
     {
         private readonly FCT_ABR_11Context context;
@@ -21,191 +21,58 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
             this.mapper = mapper;
         }
 
-        //Obtener todos los usuarios con sus clientes asociados
+        // Obtener todos los usuarios
         [HttpGet]
-        public async Task<ActionResult<List<ReservaDetallesDTO>>> Get()
+        public async Task<ActionResult<List<UsuarioDTO>>> Get2()
         {
-
-            var entidades = await context.Reservas
-                .Include(x => x.ReservaHabitacionServicios)
-                .ToListAsync();
-
-            var dtos = mapper.Map<List<ReservaDetallesDTO>>(entidades);
-
-            return dtos;
+            return await Get<Usuario, UsuarioDTO>();
         }
 
-        // Obtener reserva con habitaciones y servicios por id reserva
-        [HttpGet("{id}", Name = "obtenerReserva")]
-        public async Task<ActionResult<ReservaDetallesDTO>> Get(int id)
+        // Obtener usuarios por {id}
+        [HttpGet("{id}", Name = "obtenerUsuario")]
+        public async Task<ActionResult<UsuarioDTO>> Get(int id)
         {
-            var entidad = await context.Reservas
-                .Include(x => x.ReservaHabitacionServicios)
-                .FirstOrDefaultAsync(x => x.Id == id);
-
-            if (entidad == null)
-            {
-                return NotFound();
-            }
-
-            var dto = mapper.Map<ReservaDetallesDTO>(entidad);
-            return dto;
+            return await Get<Usuario, UsuarioDTO>(id);
         }
 
-        // Obtener las reservas con servicios por id habitacion
-        [HttpGet("habitacion/{id}", Name = "obtenerReservaHabitacion")]
-        public async Task<ActionResult<List<ReservaDetallesServicioDTO>>> Get2(int id)
-        {
-            var entidades = await context.Reservas
-                .Include(x => x.ReservaHabitacionServicios)
-                .Where(r => r.ReservaHabitacionServicios.Any(rhs => rhs.IdHabitacion == id))
-                .ToListAsync();
-
-            if (entidades == null || entidades.Count == 0)
-            {
-                return NotFound();
-            }
-
-            var dtos = mapper.Map<List<ReservaDetallesServicioDTO>>(entidades);
-            return dtos;
-        }
-
-        // Agregar reserva con habitaciones y servicios
+        // Introducir un nuevo usuario
         [HttpPost]
-        public async Task<ActionResult> Post([FromForm] ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
+        public async Task<ActionResult> Post([FromBody] UsuarioCreacionDTO usuarioCreacionDTO, int id)
         {
-            var habitacionesSolicitadas = reservaCreacionDetallesDTO.ReservaHabitacionServicios.Select(hs => hs.IdHabitacion).ToList();
-
-            var existe = await context.ReservaHabitacionServicios
-                .Where(rhs => habitacionesSolicitadas.Contains(rhs.IdHabitacion) &&
-                      reservaCreacionDetallesDTO.FechaInicio >= rhs.IdReservaNavigation.FechaInicio &&
-                      reservaCreacionDetallesDTO.FechaInicio < rhs.IdReservaNavigation.FechaFin ||
-                      reservaCreacionDetallesDTO.FechaFin <= rhs.IdReservaNavigation.FechaFin &&
-                      reservaCreacionDetallesDTO.FechaFin > rhs.IdReservaNavigation.FechaInicio ||
-                      rhs.IdReservaNavigation.FechaInicio >= reservaCreacionDetallesDTO.FechaInicio &&
-                      rhs.IdReservaNavigation.FechaInicio < reservaCreacionDetallesDTO.FechaFin ||
-                      rhs.IdReservaNavigation.FechaFin <= reservaCreacionDetallesDTO.FechaFin &&
-                      rhs.IdReservaNavigation.FechaFin > reservaCreacionDetallesDTO.FechaInicio
-                      )
-                .AnyAsync();
-
-            if (existe)
-            {
-                return BadRequest("Una o más habitaciones solicitadas ya están reservadas en las fechas indicadas.");
-            }
-
-            var entidad = mapper.Map<Reserva>(reservaCreacionDetallesDTO);
-
-            context.Add(entidad);
-            await context.SaveChangesAsync();
-
-            foreach (var rhs in reservaCreacionDetallesDTO.ReservaHabitacionServicios)
-            {
-                var nuevaReserva = new ReservaHabitacionServicio
-                {
-                    IdReserva = entidad.Id,
-                    IdHabitacion = rhs.IdHabitacion,
-                    IdServicio = rhs.IdServicio
-                };
-
-                context.ReservaHabitacionServicios.Add(nuevaReserva);
-            }
-
-            await context.SaveChangesAsync();
-
-            var entidadDTO = mapper.Map<ReservaDetallesDTO>(entidad);
-            return new CreatedAtRouteResult("obtenerReserva", new { id = entidad.Id }, entidadDTO);
+            return await Post<UsuarioCreacionDTO, Usuario, UsuarioDTO>(usuarioCreacionDTO, "obtenerUsuario", id);
         }
 
-        // Cambiar datos reserva por id, incluida habitacion y servicios
+        // Cambiar datos usuario
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, [FromForm] ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
+        public async Task<ActionResult> Put(int id, [FromBody] UsuarioCreacionDTO usuarioCreacionDTO)
         {
-            var reservaDB = await context.Reservas
-                .Include(x => x.ReservaHabitacionServicios)
-                .FirstOrDefaultAsync(x => x.Id == id);
-
-            if (reservaDB == null)
-            {
-                return NotFound();
-            }
-
-            // Al mapearlo de esta manera solo se actualizan aquellos campos que son distintos
-            reservaDB = mapper.Map(reservaCreacionDetallesDTO, reservaDB);
-
-            reservaDB.ReservaHabitacionServicios.Clear();
-
-            foreach (var habitacionDTO in reservaCreacionDetallesDTO.ReservaHabitacionServicios)
-            {
-                var habitacion = new ReservaHabitacionServicio
-                {
-                    IdReserva = id,
-                    IdHabitacion = habitacionDTO.IdHabitacion,
-                    IdServicio = habitacionDTO.IdServicio
-                };
-                reservaDB.ReservaHabitacionServicios.Add(habitacion);
-            }
-
-            context.Entry(reservaDB).State = EntityState.Modified;
-            await context.SaveChangesAsync();
-            return NoContent();
+            return await Put<UsuarioCreacionDTO, Usuario>(usuarioCreacionDTO, id);
         }
 
-        // Cambiar solamente un campo especifico
+        // Cambiar un dato especifico
         [HttpPatch("{id}")]
-        public async Task<ActionResult> Patch(int id, [FromBody] JsonPatchDocument<ReservaCreacionDetallesDTO> patchDocument)
+        public async Task<ActionResult> Patch(int id, JsonPatchDocument<UsuarioCreacionDTO> patchDocument)
         {
-            var reservaDB = await context.Reservas
-                .Include(x => x.ReservaHabitacionServicios)
-                .FirstOrDefaultAsync(x => x.Id == id);
-
-            if (reservaDB == null)
-            {
-                return NotFound();
-            }
-
-            var reservaDTO = mapper.Map<ReservaCreacionDetallesDTO>(reservaDB);
-
-            patchDocument.ApplyTo(reservaDTO);
-
-            // Actualizar las habitaciones asociadas a la reserva
-            reservaDB.ReservaHabitacionServicios.Clear(); // Eliminar todas las habitaciones asociadas actualmente
-
-            // Agregar las nuevas habitaciones asociadas
-            foreach (var habitacionDTO in reservaDTO.ReservaHabitacionServicios)
-            {
-                var habitacion = new ReservaHabitacionServicio
-                {
-                    IdReserva = id,
-                    IdHabitacion = habitacionDTO.IdHabitacion,
-                    IdServicio = habitacionDTO.IdServicio
-                };
-                reservaDB.ReservaHabitacionServicios.Add(habitacion);
-            }
-
-            await context.SaveChangesAsync();
-
-            return NoContent();
+            return await Patch<Usuario, UsuarioCreacionDTO>(id, patchDocument);
         }
 
-
-        // Borrar datos de una reserva
+        // Borrar usuario y cliente asociado
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var entidad = await context.Reservas.FirstOrDefaultAsync(x => x.Id == id);
+            var entidad = await context.Usuarios.FirstOrDefaultAsync(x => x.Id == id);
 
             if (entidad == null)
             {
                 return NotFound();
             }
 
-            var reservaHabitacionServicio = await context.ReservaHabitacionServicios
-                .Where(tc => tc.IdReserva == id)
+            var clienteUsuario = await context.ClienteUsuarios
+                .Where(tc => tc.IdUsuario == id)
                 .ToListAsync();
 
-            context.ReservaHabitacionServicios.RemoveRange(reservaHabitacionServicio);
-            context.Reservas.Remove(entidad);
+            context.ClienteUsuarios.RemoveRange(clienteUsuario);
+            context.Usuarios.Remove(entidad);
 
             await context.SaveChangesAsync();
             return NoContent();

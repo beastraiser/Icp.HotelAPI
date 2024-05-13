@@ -1,5 +1,6 @@
 ﻿using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
+using Icp.HotelAPI.Servicios.ClientesUsuariosService;
 using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocal.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocalService;
 using Microsoft.AspNetCore.Identity;
@@ -30,6 +31,8 @@ namespace Icp.HotelAPI
             services.AddDbContext<FCT_ABR_11Context>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles).AddNewtonsoftJson();
+
+            services.AddScoped<ClientesUsuariosService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

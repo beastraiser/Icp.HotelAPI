@@ -2,11 +2,13 @@
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.CategoriasController.DTO;
 using Icp.HotelAPI.Controllers.ClientesController.DTO;
+using Icp.HotelAPI.Controllers.ClientesUsuariosController.DTO;
 using Icp.HotelAPI.Controllers.HabitacionesController.DTO;
 using Icp.HotelAPI.Controllers.PerfilesController.DTO;
 using Icp.HotelAPI.Controllers.ReservasController.DTO;
 using Icp.HotelAPI.Controllers.ReservasHabitacionesServiciosController.DTO;
 using Icp.HotelAPI.Controllers.TipoCamasController.DTO;
+using Icp.HotelAPI.Controllers.UsuariosController.DTO;
 
 namespace Icp.HotelAPI.ServiciosCompartidos.Helpers
 {
@@ -19,6 +21,17 @@ namespace Icp.HotelAPI.ServiciosCompartidos.Helpers
 
             CreateMap<Cliente, ClienteDTO>().ReverseMap();
             CreateMap<ClienteCreacionDTO, Cliente>().ReverseMap();
+
+            CreateMap<Usuario, UsuarioDTO>().ReverseMap();
+            CreateMap<UsuarioCreacionDTO, Usuario>().ReverseMap();
+
+            CreateMap<ClienteUsuarioDTO, Cliente>(); 
+            CreateMap<ClienteUsuarioDTO, Usuario>() 
+                .ForMember(dest => dest.IdPerfil, opt => opt.MapFrom(src => 4)); // IDPerfil tiene un valor predeterminado de 4
+
+            CreateMap<VClienteUsuarioDTO, VClienteUsuario>().ReverseMap();
+            CreateMap<VClienteUsuarioDetallesClienteDTO, VClienteUsuario>().ReverseMap();
+            CreateMap<VClienteUsuarioDetallesUsuarioDTO, VClienteUsuario>().ReverseMap();
 
             CreateMap<Perfil, PerfilDTO>().ReverseMap();
             CreateMap<PerfilCreacionDTO, Perfil>().ReverseMap();
