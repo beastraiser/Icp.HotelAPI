@@ -38,9 +38,8 @@ namespace Icp.HotelAPI.Servicios.ClientesUsuariosService
 
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
-                // Manejar errores aquí
                 return false;
             }
         }

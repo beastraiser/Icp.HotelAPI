@@ -14,8 +14,8 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
 
         public int Id { get; set; }
         public string Tipo { get; set; }
-        public byte NumeroCamas { get; set; }
-        public byte MaximoPersonas { get; set; }
+        public int NumeroCamas { get; set; }
+        public int MaximoPersonas { get; set; }
         public decimal CosteNoche { get; set; }
         public string Foto { get; set; }
 
