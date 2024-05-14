@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 
 namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
@@ -28,14 +25,14 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
         public virtual DbSet<TipoCama> TipoCamas { get; set; }
         public virtual DbSet<Usuario> Usuarios { get; set; }
         public virtual DbSet<VClienteUsuario> VClienteUsuarios { get; set; }
-
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Categoria>(entity =>
             {
                 entity.ToTable("CATEGORIA");
 
-                entity.HasIndex(e => e.Tipo, "UQ__CATEGORI__B6FCAAA2EAB04AA3")
+                entity.HasIndex(e => e.Tipo, "UQ__CATEGORI__B6FCAAA246AE1AF3")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
@@ -64,7 +61,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             {
                 entity.ToTable("CLIENTE");
 
-                entity.HasIndex(e => e.Dni, "UQ__CLIENTE__C035B8DD98531A84")
+                entity.HasIndex(e => e.Dni, "UQ__CLIENTE__C035B8DD8C6FF5C0")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
@@ -99,14 +96,14 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             modelBuilder.Entity<ClienteUsuario>(entity =>
             {
                 entity.HasKey(e => new { e.IdCliente, e.IdUsuario })
-                    .HasName("PK__CLIENTE___3AB27789C0ADF807");
+                    .HasName("PK__CLIENTE___3AB27789EE347688");
 
                 entity.ToTable("CLIENTE_USUARIO");
 
-                entity.HasIndex(e => e.IdCliente, "UQ__CLIENTE___23A341314B74F9BF")
+                entity.HasIndex(e => e.IdCliente, "UQ__CLIENTE___23A341310E3A2826")
                     .IsUnique();
 
-                entity.HasIndex(e => e.IdUsuario, "UQ__CLIENTE___91136B91B0D58E9B")
+                entity.HasIndex(e => e.IdUsuario, "UQ__CLIENTE___91136B918758943F")
                     .IsUnique();
 
                 entity.Property(e => e.IdCliente).HasColumnName("ID_CLIENTE");
@@ -149,7 +146,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             {
                 entity.ToTable("PERFIL");
 
-                entity.HasIndex(e => e.Tipo, "UQ__PERFIL__B6FCAAA20DF7313E")
+                entity.HasIndex(e => e.Tipo, "UQ__PERFIL__B6FCAAA293D31557")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
@@ -166,6 +163,10 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
                 entity.ToTable("RESERVA");
 
                 entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.Cancelada)
+                    .HasColumnName("CANCELADA")
+                    .HasDefaultValueSql("((0))");
 
                 entity.Property(e => e.CosteTotal)
                     .HasColumnType("decimal(6, 2)")
@@ -199,7 +200,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             modelBuilder.Entity<ReservaHabitacionServicio>(entity =>
             {
                 entity.HasKey(e => new { e.IdReserva, e.IdHabitacion, e.IdServicio })
-                    .HasName("PK__RESERVA___EFA0D3968C291F62");
+                    .HasName("PK__RESERVA___EFA0D396614490FA");
 
                 entity.ToTable("RESERVA_HABITACION_SERVICIO");
 
@@ -232,7 +233,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             {
                 entity.ToTable("SERVICIO");
 
-                entity.HasIndex(e => e.Tipo, "UQ__SERVICIO__B6FCAAA209C077FE")
+                entity.HasIndex(e => e.Nombre, "UQ__SERVICIO__B21D0AB925431B71")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");
@@ -245,6 +246,12 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
                     .HasColumnType("text")
                     .HasColumnName("DESCRIPCION");
 
+                entity.Property(e => e.Nombre)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false)
+                    .HasColumnName("NOMBRE");
+
                 entity.Property(e => e.Tipo)
                     .IsRequired()
                     .HasMaxLength(255)
@@ -255,7 +262,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             modelBuilder.Entity<TipoCama>(entity =>
             {
                 entity.HasKey(e => new { e.IdCategoria, e.Tipo })
-                    .HasName("PK__TIPO_CAM__60BAD50FA7F16A47");
+                    .HasName("PK__TIPO_CAM__60BAD50FFB310741");
 
                 entity.ToTable("TIPO_CAMA");
 
@@ -277,7 +284,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             {
                 entity.ToTable("USUARIO");
 
-                entity.HasIndex(e => e.Email, "UQ__USUARIO__161CF7249F027F87")
+                entity.HasIndex(e => e.Email, "UQ__USUARIO__161CF7247438046A")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("ID");

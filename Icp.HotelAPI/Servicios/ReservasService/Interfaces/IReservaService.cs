@@ -6,5 +6,6 @@ namespace Icp.HotelAPI.Servicios.ReservasService.Interfaces
     {
         Task<ReservaDetallesCosteDTO> CrearReserva(ReservaCreacionDetallesDTO reservaCreacionDetallesDTO);
         Task<bool> ActualizarReserva(int id, ReservaCreacionDetallesDTO reservaCreacionDetallesDTO);
+        Task<bool> CancelarReserva(int id);
     }
 }

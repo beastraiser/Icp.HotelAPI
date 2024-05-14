@@ -5,6 +5,7 @@ using Icp.HotelAPI.Controllers.ClientesController.DTO;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Icp.HotelAPI.Controllers.ServiciosController.DTO;
+using Microsoft.EntityFrameworkCore;
 
 namespace Icp.HotelAPI.Controllers.ServiciosController
 {
@@ -22,10 +23,34 @@ namespace Icp.HotelAPI.Controllers.ServiciosController
         }
 
         // Obtener todos los servicios
-        [HttpGet]
+        [HttpGet("lista")]
         public async Task<ActionResult<List<ServicioDTO>>> Get()
         {
             return await Get<Servicio, ServicioDTO>();
+        }
+
+        // Obtener todos los servicios de tipo servicio
+        [HttpGet]
+        public async Task<ActionResult<List<ServicioDTO>>> Get2()
+        {
+            var entidades = await context.Servicios
+                .Where(s => s.Tipo == "SERVICIO")
+                .ToListAsync();
+
+            var dtos = mapper.Map<List<ServicioDTO>>(entidades);
+            return dtos;
+        }
+
+        // Obtener todos los servicios de tipo extra
+        [HttpGet("extras")]
+        public async Task<ActionResult<List<ServicioDTO>>> Get3()
+        {
+            var entidades = await context.Servicios
+                .Where(s => s.Tipo == "EXTRA")
+                .ToListAsync();
+
+            var dtos = mapper.Map<List<ServicioDTO>>(entidades);
+            return dtos;
         }
 
         // Obtener servicio por {id}

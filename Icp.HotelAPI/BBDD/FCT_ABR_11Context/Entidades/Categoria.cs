@@ -1,6 +1,4 @@
 ﻿using Icp.HotelAPI.Controllers.Interfaces;
-using System;
-using System.Collections.Generic;
 
 namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
 {

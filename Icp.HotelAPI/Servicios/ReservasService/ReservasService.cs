@@ -3,6 +3,7 @@ using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.ReservasController.DTO;
 using Icp.HotelAPI.Servicios.ReservasService.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Icp.HotelAPI.Servicios.ReservasService
@@ -98,6 +99,33 @@ namespace Icp.HotelAPI.Servicios.ReservasService
             return true;
         }
 
+        public async Task<bool> CancelarReserva(int id)
+        {
+            var reserva = await context.Reservas.FindAsync(id);
+
+            if (reserva == null || reserva.Cancelada)
+            {
+                return false;
+            }
+
+            reserva.Cancelada = true;
+            var hoy = DateTime.Today;
+            var dosDiasAntes = hoy.AddDays(2);
+
+            if (reserva.FechaInicio <= dosDiasAntes)
+            {
+                reserva.CosteTotal *= 0.1M;
+            }
+            else
+            {
+                reserva.CosteTotal = 0M;
+            }
+
+            context.Entry(reserva).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+            return true;
+        }
+
         private async Task<decimal> CalcularCosteTotalReserva(int reservaId)
         {
             var detallesReserva = await context.ReservaHabitacionServicios
@@ -149,15 +177,18 @@ namespace Icp.HotelAPI.Servicios.ReservasService
 
             var existe = await context.ReservaHabitacionServicios
                 .Where(rhs => habitacionesSolicitadas.Contains(rhs.IdHabitacion) &&
-                      reservaCreacionDetallesDTO.FechaInicio >= rhs.IdReservaNavigation.FechaInicio &&
-                      reservaCreacionDetallesDTO.FechaInicio < rhs.IdReservaNavigation.FechaFin ||
-                      reservaCreacionDetallesDTO.FechaFin <= rhs.IdReservaNavigation.FechaFin &&
-                      reservaCreacionDetallesDTO.FechaFin > rhs.IdReservaNavigation.FechaInicio ||
-                      rhs.IdReservaNavigation.FechaInicio >= reservaCreacionDetallesDTO.FechaInicio &&
-                      rhs.IdReservaNavigation.FechaInicio < reservaCreacionDetallesDTO.FechaFin ||
-                      rhs.IdReservaNavigation.FechaFin <= reservaCreacionDetallesDTO.FechaFin &&
-                      rhs.IdReservaNavigation.FechaFin > reservaCreacionDetallesDTO.FechaInicio
-                      )
+                    (
+                        (reservaCreacionDetallesDTO.FechaInicio >= rhs.IdReservaNavigation.FechaInicio &&
+                        reservaCreacionDetallesDTO.FechaInicio < rhs.IdReservaNavigation.FechaFin) ||
+                        (reservaCreacionDetallesDTO.FechaFin <= rhs.IdReservaNavigation.FechaFin &&
+                        reservaCreacionDetallesDTO.FechaFin > rhs.IdReservaNavigation.FechaInicio) ||
+                        (rhs.IdReservaNavigation.FechaInicio >= reservaCreacionDetallesDTO.FechaInicio &&
+                        rhs.IdReservaNavigation.FechaInicio < reservaCreacionDetallesDTO.FechaFin) ||
+                        (rhs.IdReservaNavigation.FechaFin <= reservaCreacionDetallesDTO.FechaFin &&
+                        rhs.IdReservaNavigation.FechaFin > reservaCreacionDetallesDTO.FechaInicio)
+                    ) && 
+                      !rhs.IdReservaNavigation.Cancelada
+                )
                 .AnyAsync();
 
             return existe;

@@ -1,6 +1,4 @@
 ﻿using Icp.HotelAPI.Controllers.Interfaces;
-using System;
-using System.Collections.Generic;
 
 namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
 {
@@ -13,6 +11,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
 
         public int Id { get; set; }
         public string Tipo { get; set; }
+        public string Nombre { get; set; }
         public string Descripcion { get; set; }
         public decimal Coste { get; set; }
 

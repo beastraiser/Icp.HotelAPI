@@ -103,7 +103,7 @@ namespace Icp.HotelAPI.Controllers.ReservasController
             {
                 return BadRequest(ex.Message);
             }
-            catch (Exception)
+            catch
             {
                 return StatusCode(500, "Se produjo un error interno");
             }
@@ -122,6 +122,22 @@ namespace Icp.HotelAPI.Controllers.ReservasController
 
             return NoContent();
         }
+
+        [HttpPut("{id}/cancelar")]
+        public async Task<ActionResult> CancelarReserva(int id)
+        {
+            var cancelado = await reservaService.CancelarReserva(id);
+
+            if (cancelado)
+            {
+                return Ok("La reserva ha sido cancelada correctamente.");
+            }
+            else
+            {
+                return BadRequest("La reserva ya ha sido cancelada anteriormente.");
+            }
+        }
+
 
         // Cambiar solamente un campo especifico y recalcular precio
         [HttpPatch("{id}")]
