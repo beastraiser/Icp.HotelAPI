@@ -2,7 +2,6 @@
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.CategoriasController.DTO;
-using Icp.HotelAPI.Controllers.HabitacionesController.DTO;
 using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocal.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +11,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
 {
     [ApiController]
     [Route("api/categorias")]
+
     public class CategoriasController : CustomBaseController.CustomBaseController
     {
         private readonly FCT_ABR_11Context context;

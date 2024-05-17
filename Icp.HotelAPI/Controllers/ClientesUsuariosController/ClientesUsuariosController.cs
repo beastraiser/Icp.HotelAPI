@@ -1,23 +1,23 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
-using Icp.HotelAPI.Controllers.ClientesController.DTO;
 using Icp.HotelAPI.Controllers.ClientesUsuariosController.DTO;
-using Icp.HotelAPI.Servicios.ClientesUsuariosService;
+using Icp.HotelAPI.Controllers.UsuariosController.DTO;
+using Icp.HotelAPI.Servicios.ClientesUsuariosService.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Icp.HotelAPI.Controllers.ClientesUsuariosController
 {
     [ApiController]
-    [Route("api/clienteusuario")]
+    [Route("api/registro")]
     public class ClientesController : CustomBaseController.CustomBaseController
     {
         private readonly FCT_ABR_11Context context;
         private readonly IMapper mapper;
-        private readonly ClientesUsuariosService clientesUsuariosService;
+        private readonly IClienteUsuarioService clientesUsuariosService;
 
-        public ClientesController(FCT_ABR_11Context context, IMapper mapper, ClientesUsuariosService clientesUsuariosService) : base(context, mapper)
+        public ClientesController(FCT_ABR_11Context context, IMapper mapper, IClienteUsuarioService clientesUsuariosService) : base(context, mapper)
         {
             this.context = context;
             this.mapper = mapper;
@@ -25,7 +25,7 @@ namespace Icp.HotelAPI.Controllers.ClientesUsuariosController
         }
 
         // Obtener datos de clientes con usuarios
-        [HttpGet]
+        [HttpGet("lista")]
         public async Task<ActionResult<List<VClienteUsuarioDTO>>> Get()
         {
             return await Get<VClienteUsuario, VClienteUsuarioDTO>();
@@ -55,15 +55,16 @@ namespace Icp.HotelAPI.Controllers.ClientesUsuariosController
             return mapper.Map<VClienteUsuarioDetallesClienteDTO>(entidad);
         }
 
+        // Registrar nuevo usuario
         [HttpPost]
-        public async Task<ActionResult> CrearClienteYUsuario([FromBody] ClienteUsuarioDTO clienteUsuarioDTO)
+        public async Task<ActionResult<RespuestaAutenticacionDTO>> Registrar([FromBody] ClienteUsuarioDTO clienteUsuarioDTO)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var exito = await clientesUsuariosService.CrearClienteYUsuario(clienteUsuarioDTO);
+            var exito = await clientesUsuariosService.Registrar(clienteUsuarioDTO);
 
             if (exito)
             {

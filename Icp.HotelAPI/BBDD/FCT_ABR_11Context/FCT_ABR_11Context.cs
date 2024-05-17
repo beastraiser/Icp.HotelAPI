@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
 {
-    public partial class FCT_ABR_11Context : DbContext
+    public partial class FCT_ABR_11Context : IdentityDbContext
     {
         public FCT_ABR_11Context()
         {
@@ -372,6 +373,9 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
             });
 
             OnModelCreatingPartial(modelBuilder);
+
+            // Necesario para sistema de usuarios
+            base.OnModelCreating(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

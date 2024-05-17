@@ -1,4 +1,5 @@
 ﻿using Icp.HotelAPI.Controllers.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
 {

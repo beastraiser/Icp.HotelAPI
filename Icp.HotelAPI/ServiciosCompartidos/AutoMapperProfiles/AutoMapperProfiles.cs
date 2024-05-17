@@ -28,6 +28,11 @@ namespace Icp.HotelAPI.ServiciosCompartidos.Helpers
 
             CreateMap<Usuario, UsuarioDTO>().ReverseMap();
             CreateMap<UsuarioCreacionDTO, Usuario>().ReverseMap();
+            CreateMap<UsuarioCredencialesDTO, Usuario>()
+                .ForMember(x => x.IdPerfil, options => options.Ignore())
+                .ForMember(x => x.Id, options => options.Ignore())
+                .ForMember(x => x.FechaRegistro, options => options.Ignore())
+                .ReverseMap();
 
             CreateMap<ClienteUsuarioDTO, Cliente>(); 
             CreateMap<ClienteUsuarioDTO, Usuario>() 
