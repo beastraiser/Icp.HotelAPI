@@ -1,6 +1,4 @@
 ﻿using Icp.HotelAPI.Controllers.Interfaces;
-using System;
-using System.Collections.Generic;
 
 namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
 {
@@ -16,6 +14,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
         public int IdUsuario { get; set; }
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
+        public bool Cancelada { get; set; }
         public decimal CosteTotal { get; set; }
 
         public virtual Cliente IdClienteNavigation { get; set; }

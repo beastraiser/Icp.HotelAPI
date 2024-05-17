@@ -4,6 +4,8 @@ using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.HabitacionesController.DTO;
 using Icp.HotelAPI.ServiciosCompartidos.PaginacionDTO;
 using Icp.HotelAPI.ServiciosCompartidos.PaginacionDTO.Helpers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +14,7 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 {
     [ApiController]
     [Route("api/habitaciones")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class HabitacionesController : CustomBaseController.CustomBaseController
     {
         private readonly FCT_ABR_11Context context;
