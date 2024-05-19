@@ -7,5 +7,8 @@ namespace Icp.HotelAPI.Servicios.CategoriasService.Interfaces
     {
         Task<List<CategoriaDetallesDTO>> ObtenerCategorias();
         Task<CategoriaDetallesDTO> ObtenerCategoriaId(int id);
+        Task<ActionResult> NuevaCategoria([FromForm] CategoriaCreacionDTO categoriaCreacionDTO);
+        Task<bool> CambiarDatosCategoria(int id, [FromForm] CategoriaCreacionDTO categoriaCreacionDTO);
+        Task<bool> BorrarCategoria(int id);
     }
 }

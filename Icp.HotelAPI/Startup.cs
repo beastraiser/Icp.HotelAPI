@@ -3,8 +3,14 @@ using Icp.HotelAPI.Servicios.CategoriasService;
 using Icp.HotelAPI.Servicios.CategoriasService.Interfaces;
 using Icp.HotelAPI.Servicios.ClientesUsuariosService;
 using Icp.HotelAPI.Servicios.ClientesUsuariosService.Interfaces;
+using Icp.HotelAPI.Servicios.HabitacionesService;
+using Icp.HotelAPI.Servicios.HabitacionesService.Interfaces;
 using Icp.HotelAPI.Servicios.ReservasService;
 using Icp.HotelAPI.Servicios.ReservasService.Interfaces;
+using Icp.HotelAPI.Servicios.ServiciosService;
+using Icp.HotelAPI.Servicios.ServiciosService.Interfaces;
+using Icp.HotelAPI.Servicios.UsuariosService;
+using Icp.HotelAPI.Servicios.UsuariosService.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocal.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocalService;
 using Icp.HotelAPI.ServiciosCompartidos.LoginService;
@@ -66,6 +72,9 @@ namespace Icp.HotelAPI
             services.AddScoped<IClienteUsuarioService, ClientesUsuariosService>();
             services.AddScoped<IReservaService, ReservasService>();
             services.AddScoped<ICategoriaService, CategoriasService>();
+            services.AddScoped<IHabitacionService, HabitacionesService>();
+            services.AddScoped<IServicioService, ServiciosService>();
+            services.AddScoped<IUsuarioService, UsuariosService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
