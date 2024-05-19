@@ -3,6 +3,7 @@ using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.ReservasController.DTO;
 using Icp.HotelAPI.Servicios.ReservasService.Interfaces;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,13 +14,72 @@ namespace Icp.HotelAPI.Servicios.ReservasService
         private readonly FCT_ABR_11Context context;
         private readonly IMapper mapper;
 
-        public ReservasService(FCT_ABR_11Context context, IMapper mapper)
+        public ReservasService(
+            FCT_ABR_11Context context,
+            IMapper mapper)
         {
             this.context = context;
             this.mapper = mapper;
         }
 
-        public async Task<ReservaDetallesCosteDTO> CrearReserva(ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
+        public async Task<List<ReservaDetallesCosteDTO>> ObtenerReservas()
+        {
+            var entidades = await context.Reservas
+                .Include(x => x.ReservaHabitacionServicios)
+                .ToListAsync();
+
+            var dtos = mapper.Map<List<ReservaDetallesCosteDTO>>(entidades);
+            return dtos;
+        }
+
+        public async Task<ReservaDetallesCosteDTO> ObtenerReservasPorId(int id)
+        {
+            var entidad = await context.Reservas
+                .Include(x => x.ReservaHabitacionServicios)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (entidad == null)
+            {
+                throw new InvalidOperationException("La reserva no existe");
+            }
+
+            var dto = mapper.Map<ReservaDetallesCosteDTO>(entidad);
+            return dto;
+        }
+
+        public async Task<List<ReservaDetallesServicioDTO>> ObtenerReservasPorIdHabitacion(int id)
+        {
+            var entidades = await context.Reservas
+                .Include(x => x.ReservaHabitacionServicios)
+                .Where(r => r.ReservaHabitacionServicios.Any(rhs => rhs.IdHabitacion == id))
+                .ToListAsync();
+
+            if (entidades == null || entidades.Count == 0)
+            {
+                throw new InvalidOperationException("No hay reservas para la habitacion especificada");
+            }
+
+            var dtos = mapper.Map<List<ReservaDetallesServicioDTO>>(entidades);
+            return dtos;
+        }
+
+        public async Task<List<ReservaDetallesCosteDTO>> ObtenerReservasPorIdServicio(int id)
+        {
+            var entidades = await context.Reservas
+                .Include(x => x.ReservaHabitacionServicios)
+                .Where(r => r.ReservaHabitacionServicios.Any(rhs => rhs.IdServicio == id))
+                .ToListAsync();
+
+            if (entidades == null || entidades.Count == 0)
+            {
+                throw new InvalidOperationException("No hay reservas para el servicio especificado");
+            }
+
+            var dtos = mapper.Map<List<ReservaDetallesCosteDTO>>(entidades);
+            return dtos;
+        }
+
+        public async Task<ActionResult> CrearReserva(ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
         {
             if (await VerificarExistencia(reservaCreacionDetallesDTO))
             {
@@ -56,7 +116,7 @@ namespace Icp.HotelAPI.Servicios.ReservasService
             await context.SaveChangesAsync();
 
             var entidadDTO = mapper.Map<ReservaDetallesCosteDTO>(entidad);
-            return entidadDTO;
+            return new CreatedAtRouteResult("obtenerReserva", new { id = entidadDTO.Id }, entidadDTO);
         }
 
         public async Task<bool> ActualizarReserva(int id, ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
@@ -122,6 +182,50 @@ namespace Icp.HotelAPI.Servicios.ReservasService
             }
 
             context.Entry(reserva).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> CambiarCampoReserva(int id, [FromBody] JsonPatchDocument<ReservaCreacionDetallesDTO> patchDocument)
+        {
+            if (patchDocument == null)
+            {
+                throw new InvalidOperationException("Peticion incorrecta");
+            }
+
+            var reservaDB = await context.Reservas
+                .Include(x => x.ReservaHabitacionServicios)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (reservaDB == null)
+            {
+                return false;
+            }
+
+            var reservaDTO = mapper.Map<ReservaCreacionDetallesDTO>(reservaDB);
+            patchDocument.ApplyTo(reservaDTO);
+
+            var actualizado = await ActualizarReserva(id, reservaDTO);
+
+            return true;
+        }
+
+        public async Task<bool> BorrarReserva(int id)
+        {
+            var entidad = await context.Reservas.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (entidad == null)
+            {
+                return false;
+            }
+
+            var reservaHabitacionServicio = await context.ReservaHabitacionServicios
+                .Where(tc => tc.IdReserva == id)
+                .ToListAsync();
+
+            context.ReservaHabitacionServicios.RemoveRange(reservaHabitacionServicio);
+            context.Reservas.Remove(entidad);
+
             await context.SaveChangesAsync();
             return true;
         }

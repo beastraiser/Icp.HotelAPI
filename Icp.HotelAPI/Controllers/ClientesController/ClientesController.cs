@@ -22,42 +22,42 @@ namespace Icp.HotelAPI.Controllers.ClientesController
 
         // Obtener todos los clientes
         [HttpGet]
-        public async Task<ActionResult<List<ClienteDTO>>> Get2()
+        public async Task<ActionResult<List<ClienteDTO>>> ObtenerClientes()
         {
             return await Get<Cliente, ClienteDTO>();
         }
 
         // Obtener clientes por {id}
         [HttpGet("{id}", Name = "obtenerCliente")]
-        public async Task<ActionResult<ClienteDTO>> Get(int id)
+        public async Task<ActionResult<ClienteDTO>> ObtenerClientesPorId(int id)
         {
             return await Get<Cliente, ClienteDTO>(id);
         }
 
         // Introducir un nuevo cliente
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] ClienteCreacionDTO clienteCreacionDTO, int id)
+        public async Task<ActionResult> CrearNuevoCliente([FromBody] ClienteCreacionDTO clienteCreacionDTO)
         {
-            return await Post<ClienteCreacionDTO, Cliente, ClienteDTO>(clienteCreacionDTO, "obtenerCliente", id);
+            return await Post<ClienteCreacionDTO, Cliente, ClienteDTO>(clienteCreacionDTO, "obtenerCliente", "Dni", "Telefono");
         }
 
         // Cambiar datos cliente
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, [FromBody] ClienteCreacionDTO clienteCreacionDTO)
+        public async Task<ActionResult> CambiarDatosCliente(int id, [FromBody] ClienteCreacionDTO clienteCreacionDTO)
         {
             return await Put<ClienteCreacionDTO, Cliente>(clienteCreacionDTO, id);
         }
 
         // Cambiar un dato especifico
         [HttpPatch("{id}")]
-        public async Task<ActionResult> Patch(int id, JsonPatchDocument<ClienteCreacionDTO> patchDocument)
+        public async Task<ActionResult> CambiarCampoCliente(int id, JsonPatchDocument<ClienteCreacionDTO> patchDocument)
         {
             return await Patch<Cliente, ClienteCreacionDTO>(id, patchDocument);
         }
 
-        // Borrar cliente
+        // Borrar cliente por {id}
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> BorrarCliente(int id)
         {
             return await Delete<Cliente>(id);
         }

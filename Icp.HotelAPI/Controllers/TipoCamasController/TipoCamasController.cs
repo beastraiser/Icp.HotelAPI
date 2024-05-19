@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
+using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.CategoriasController.DTO;
+using Icp.HotelAPI.Controllers.ServiciosController.DTO;
 using Icp.HotelAPI.Controllers.TipoCamasController.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,12 +11,15 @@ namespace Icp.HotelAPI.Controllers.TipoCamasController
 {
     [ApiController]
     [Route("api/tipocama")]
-    public class TipoCamasController : ControllerBase
+    public class TipoCamasController : CustomBaseController.CustomBaseController
     {
         private readonly FCT_ABR_11Context context;
         private readonly IMapper mapper;
 
-        public TipoCamasController(FCT_ABR_11Context context, IMapper mapper)
+        public TipoCamasController(
+            FCT_ABR_11Context context, 
+            IMapper mapper)
+            : base(context, mapper)
         {
             this.context = context;
             this.mapper = mapper;
@@ -22,11 +27,9 @@ namespace Icp.HotelAPI.Controllers.TipoCamasController
 
         // Obtener todos los tipos de cama
         [HttpGet]
-        public async Task<ActionResult<List<TipoCamaDTO>>> Get()
+        public async Task<ActionResult<List<TipoCamaDTO>>> ObtenerTodo()
         {
-            var entidades = await context.TipoCamas.ToListAsync();
-            var dtos = mapper.Map<List<TipoCamaDTO>>(entidades);
-            return dtos;
+            return await Get<TipoCama, TipoCamaDTO>();
         }
     }
 

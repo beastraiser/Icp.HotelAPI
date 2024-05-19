@@ -2,10 +2,9 @@
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.CategoriasController.DTO;
-using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocal.Interfaces;
+using Icp.HotelAPI.Servicios.CategoriasService.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Icp.HotelAPI.Controllers.CategoriasController
 {
@@ -16,118 +15,54 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
     {
         private readonly FCT_ABR_11Context context;
         private readonly IMapper mapper;
-        private readonly IAlmacenadorArchivos almacenadorArchivos;
-        private readonly string contenedor = "categorias";
+        private readonly ICategoriaService categoriaService;
 
-        public CategoriasController(FCT_ABR_11Context context, IMapper mapper, IAlmacenadorArchivos almacenadorArchivos) : base(context, mapper)
+        public CategoriasController(
+            FCT_ABR_11Context context, 
+            IMapper mapper, 
+            ICategoriaService categoriaService) 
+            : base(context, mapper)
         {
             this.context = context;
             this.mapper = mapper;
-            this.almacenadorArchivos = almacenadorArchivos;
+            this.categoriaService = categoriaService;
         }
 
         // Obtener todas las categorias con tipo cama
         [HttpGet]
-        public async Task<ActionResult<List<CategoriaDetallesDTO>>> Get()
+        public async Task<ActionResult<List<CategoriaDetallesDTO>>> ObtenerCategorias()
         {
-            var entidades = await context.Categorias
-                .Include(x => x.TipoCamas)
-                .ToListAsync();
-            var dtos = mapper.Map<List<CategoriaDetallesDTO>>(entidades);
-            return dtos;
+            return await categoriaService.ObtenerCategorias();
         }
 
         // Obtener categoria por {id} con tipo cama
         [HttpGet("{id}", Name = "obtenerCategoria")]
-        public async Task<ActionResult<CategoriaDetallesDTO>> Get(int id)
+        public async Task<ActionResult<CategoriaDetallesDTO>> ObtenerCategoriaId(int id)
         {
-            var entidad = await context.Categorias
-                .Include(x => x.TipoCamas)
-                .FirstOrDefaultAsync(x => x.Id == id);
-
-            if (entidad == null)
-            {
-                return NotFound();
-            }
-
-            var dto = mapper.Map<CategoriaDetallesDTO>(entidad);
-            return dto;
+            return await categoriaService.ObtenerCategoriaId(id);
         }
 
         // Introducir una nueva categoria con tipos de cama
         [HttpPost]
-        public async Task<ActionResult> Post([FromForm] CategoriaCreacionDTO categoriaCreacionDTO)
+        public async Task<ActionResult> NuevaCategoria([FromForm] CategoriaCreacionDTO categoriaCreacionDTO)
         {
-            var existeTipo = await context.Categorias
-                .AnyAsync(x => x.Tipo == categoriaCreacionDTO.Tipo);
-
-            if (existeTipo)
-            {
-                return BadRequest($"Ya existe una categoría {categoriaCreacionDTO.Tipo}");
-            }
-
-            var entidad = mapper.Map<Categoria>(categoriaCreacionDTO);
-
-            // Lógica para subir una foto
-            if (categoriaCreacionDTO.Foto != null)
-            {
-                using (var memoryStream = new MemoryStream())
-                {
-                    await categoriaCreacionDTO.Foto.CopyToAsync(memoryStream);
-                    var contenido = memoryStream.ToArray();
-                    var extension = Path.GetExtension(categoriaCreacionDTO.Foto.FileName);
-                    entidad.Foto = await almacenadorArchivos.GuardarArchivo(contenido, extension, contenedor, categoriaCreacionDTO.Foto.ContentType);
-                }
-            }
-
-            context.Add(entidad);
-            await context.SaveChangesAsync();
-
-            foreach (var tipoCamaDTO in categoriaCreacionDTO.TipoCamas)
-            {
-                var tipoCama = new TipoCama
-                {
-                    IdCategoria = entidad.Id,
-                    Tipo = tipoCamaDTO.Tipo
-                };
-
-                context.TipoCamas.Add(tipoCama);
-            }
-
-            await context.SaveChangesAsync();
-
-            var entidadDTO = mapper.Map<CategoriaDetallesDTO>(entidad);
-            return new CreatedAtRouteResult("obtenerCategoria", new { id = entidad.Id }, entidadDTO);
+            return await categoriaService.NuevaCategoria(categoriaCreacionDTO);
         }
 
         // Cambiar foto
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, [FromForm] CategoriaCreacionDTO categoriaCreacionDTO)
+        public async Task<ActionResult> CambiarDatosCategoria(int id, [FromForm] CategoriaCreacionDTO categoriaCreacionDTO)
         {
-            var categoriaDB = await context.Categorias.FirstOrDefaultAsync(x => x.Id == id);
+            var exito = await categoriaService.CambiarDatosCategoria(id, categoriaCreacionDTO);
 
-            if (categoriaDB == null)
+            if (!exito)
             {
                 return NotFound();
             }
-
-            // Al mapearlo de esta manera solo se actualizan aquellos campos que son distintos
-            categoriaDB = mapper.Map(categoriaCreacionDTO, categoriaDB);
-
-            // Lógica para editar una foto
-            if (categoriaCreacionDTO.Foto != null)
+            else
             {
-                using (var memoryStream = new MemoryStream())
-                {
-                    await categoriaCreacionDTO.Foto.CopyToAsync(memoryStream);
-                    var contenido = memoryStream.ToArray();
-                    var extension = Path.GetExtension(categoriaCreacionDTO.Foto.FileName);
-                    categoriaDB.Foto = await almacenadorArchivos.EditarArchivo(contenido, extension, contenedor, categoriaDB.Foto, categoriaCreacionDTO.Foto.ContentType);
-                }
+                return NoContent();
             }
-
-            await context.SaveChangesAsync();
-            return NoContent();
         }
 
         // Cambiar datos categoria por {id}
@@ -139,27 +74,18 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
 
         // Borrar categoria y tipos de cama por {id}
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> BorrarCategoria(int id)
         {
-            var entidad = await context.Categorias.FirstOrDefaultAsync(x => x.Id == id);
+            var exito = await categoriaService.BorrarCategoria(id);
 
-            if (entidad == null)
+            if (!exito)
             {
                 return NotFound();
             }
-
-            var tipoCamas = await context.TipoCamas
-                .Where(tc => tc.IdCategoria == id)
-                .ToListAsync();
-
-            // Borra la foto de wwwroot
-            await almacenadorArchivos.BorrarArchivo(entidad.Foto, contenedor);
-
-            context.TipoCamas.RemoveRange(tipoCamas);
-            context.Categorias.Remove(entidad);
-
-            await context.SaveChangesAsync();
-            return NoContent();
+            else
+            {
+                return NoContent();
+            }
         }
     }
 }

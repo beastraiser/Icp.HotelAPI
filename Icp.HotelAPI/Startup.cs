@@ -1,8 +1,16 @@
 ﻿using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
+using Icp.HotelAPI.Servicios.CategoriasService;
+using Icp.HotelAPI.Servicios.CategoriasService.Interfaces;
 using Icp.HotelAPI.Servicios.ClientesUsuariosService;
 using Icp.HotelAPI.Servicios.ClientesUsuariosService.Interfaces;
+using Icp.HotelAPI.Servicios.HabitacionesService;
+using Icp.HotelAPI.Servicios.HabitacionesService.Interfaces;
 using Icp.HotelAPI.Servicios.ReservasService;
 using Icp.HotelAPI.Servicios.ReservasService.Interfaces;
+using Icp.HotelAPI.Servicios.ServiciosService;
+using Icp.HotelAPI.Servicios.ServiciosService.Interfaces;
+using Icp.HotelAPI.Servicios.UsuariosService;
+using Icp.HotelAPI.Servicios.UsuariosService.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocal.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocalService;
 using Icp.HotelAPI.ServiciosCompartidos.LoginService;
@@ -38,7 +46,7 @@ namespace Icp.HotelAPI
             services.AddAutoMapper(typeof(Startup));
 
             // Configuración de la conexión
-            services.AddDbContext<FCT_ABR_11Context>(options => options.UseSqlServer(Configuration.GetConnectionString("ICPConnection")));
+            services.AddDbContext<FCT_ABR_11Context>(options => options.UseSqlServer(Configuration.GetConnectionString("HomeConnection")));
 
             services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles).AddNewtonsoftJson();
 
@@ -63,6 +71,10 @@ namespace Icp.HotelAPI
             services.AddScoped<ILoginService, LoginService>();
             services.AddScoped<IClienteUsuarioService, ClientesUsuariosService>();
             services.AddScoped<IReservaService, ReservasService>();
+            services.AddScoped<ICategoriaService, CategoriasService>();
+            services.AddScoped<IHabitacionService, HabitacionesService>();
+            services.AddScoped<IServicioService, ServiciosService>();
+            services.AddScoped<IUsuarioService, UsuariosService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

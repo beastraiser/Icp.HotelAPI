@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
-using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
-using Icp.HotelAPI.Controllers.HabitacionesController.DTO;
 using Icp.HotelAPI.Controllers.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.PaginacionDTO;
 using Icp.HotelAPI.ServiciosCompartidos.PaginacionDTO.Helpers;
@@ -60,7 +58,7 @@ namespace Icp.HotelAPI.Controllers.CustomBaseController
             return dtos;
         }
 
-        // Post un nuevo registro
+        // Post un nuevo registro con id no autoincrementado
         protected async Task<ActionResult> Post<TCreacion, TEntidad, TLectura> (TCreacion creacionDTO, string nombreRuta, int id) 
             where TEntidad : class, IId
         {
@@ -77,6 +75,30 @@ namespace Icp.HotelAPI.Controllers.CustomBaseController
             var dtoLectura = mapper.Map<TLectura>(entidad);
             return new CreatedAtRouteResult(nombreRuta, dtoLectura);
         }
+        // Post un nuevo registro con id autoincrementado
+        protected async Task<ActionResult> Post<TCreacion, TEntidad, TLectura>(TCreacion creacionDTO, string nombreRuta, params string[] nombresCampos)
+            where TEntidad : class
+        {
+            foreach( var nombreCampo in  nombresCampos )
+            {
+                var valorCampo = typeof(TCreacion).GetProperty(nombreCampo).GetValue(creacionDTO);
+                //var valorCampo = infoPropiedad.GetValue(creacionDTO);
+
+                var existe = await context.Set<TEntidad>().AnyAsync(e => EF.Property<object>(e, nombreCampo).Equals(valorCampo));
+
+                if (existe)
+                {
+                    return BadRequest($"Ya existe un registro con el {nombreCampo}: {valorCampo}");
+                }
+            }
+
+            var entidad = mapper.Map<TEntidad>(creacionDTO);
+            context.Add(entidad);
+            await context.SaveChangesAsync();
+            var dtoLectura = mapper.Map<TLectura>(entidad);
+            return new CreatedAtRouteResult(nombreRuta, dtoLectura);
+        }
+
 
         // Put un registro por id
         protected async Task<ActionResult> Put<TCreacion, TEntidad>(TCreacion creacionDTO, int id) 

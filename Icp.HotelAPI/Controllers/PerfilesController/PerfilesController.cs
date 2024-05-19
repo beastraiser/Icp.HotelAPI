@@ -3,18 +3,20 @@ using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.PerfilesController.DTO;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Icp.HotelAPI.Controllers.PerfilesController
 {
     [ApiController]
     [Route("api/perfiles")]
-    public class PerfilesController : ControllerBase
+    public class PerfilesController : CustomBaseController.CustomBaseController
     {
         private readonly FCT_ABR_11Context context;
         private readonly IMapper mapper;
 
-        public PerfilesController(FCT_ABR_11Context context, IMapper mapper)
+        public PerfilesController(
+            FCT_ABR_11Context context,
+            IMapper mapper)
+            : base(context, mapper)
         {
             this.context = context;
             this.mapper = mapper;
@@ -22,71 +24,37 @@ namespace Icp.HotelAPI.Controllers.PerfilesController
 
         // Obtener los perfiles
         [HttpGet]
-        public async Task<ActionResult<List<PerfilDTO>>> Get()
+        public async Task<ActionResult<List<PerfilDTO>>> ObtenerPerfiles()
         {
-            var entidades = await context.Perfiles.ToListAsync();
-            var dtos = mapper.Map<List<PerfilDTO>>(entidades);
-            return dtos;
+            return await Get<Perfil, PerfilDTO>();
         }
 
         // Obtener perfil por {id}
         [HttpGet("{id}", Name = "obtenerPerfil")]
-        public async Task<ActionResult<PerfilDTO>> Get(int id)
+        public async Task<ActionResult<PerfilDTO>> ObtenerPerfilesPorId(int id)
         {
-            var entidad = await context.Perfiles.FirstOrDefaultAsync(x => x.Id == id);
-
-            if (entidad == null)
-            {
-                return NotFound();
-            }
-
-            var dto = mapper.Map<PerfilDTO>(entidad);
-            return dto;
+            return await Get<Perfil, PerfilDTO>(id);
         }
 
         // Introducir un nuevo perfil
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] PerfilCreacionDTO perfilCreacionDTO)
+        public async Task<ActionResult> CrearNuevoPerfil([FromBody] PerfilCreacionDTO perfilCreacionDTO)
         {
-            var existeTipo = await context.Perfiles.AnyAsync(x => x.Tipo == perfilCreacionDTO.Tipo);
-
-            if (existeTipo)
-            {
-                return BadRequest($"Ya existe un perfil tipo {perfilCreacionDTO.Tipo}");
-            }
-
-            var entidad = mapper.Map<Perfil>(perfilCreacionDTO);
-            context.Add(entidad);
-            await context.SaveChangesAsync();
-            var entidadDTO = mapper.Map<PerfilCreacionDTO>(entidad);
-            return new CreatedAtRouteResult("obtenerPerfil", new { id = entidad.Id }, entidadDTO);
+            return await Post<PerfilCreacionDTO, Perfil, PerfilDTO>(perfilCreacionDTO, "obtenerPerfil", "Tipo");
         }
 
         // Cambiar datos perfil por {id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, [FromBody] PerfilCreacionDTO perfilCreacionDTO)
+        public async Task<ActionResult> CambiarDatosPerfil(int id, [FromBody] PerfilCreacionDTO perfilCreacionDTO)
         {
-            var entidad = mapper.Map<Perfil>(perfilCreacionDTO);
-            entidad.Id = id;
-            context.Entry(entidad).State = EntityState.Modified;
-            await context.SaveChangesAsync();
-            return NoContent();
+            return await Put<PerfilCreacionDTO, Perfil>(perfilCreacionDTO, id);
         }
 
         // Borrar perfil por {id}
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> BorrarPerfil(int id)
         {
-            var existe = await context.Perfiles.AnyAsync(x => x.Id == id);
-
-            if (!existe)
-            {
-                return NotFound();
-            }
-
-            context.Remove(new Perfil() { Id = id });
-            await context.SaveChangesAsync();
-            return NoContent();
+            return await Delete<Perfil>(id);
         }
     }
 }

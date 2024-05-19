@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
-using Icp.HotelAPI.Controllers.HabitacionesController.DTO;
 using Icp.HotelAPI.Controllers.ReservasHabitacionesServiciosController.DTO;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,7 +21,7 @@ namespace Icp.HotelAPI.Controllers.ReservasHabitacionesServiciosController
 
         // Obtener todas las filas
         [HttpGet]
-        public async Task<ActionResult<List<ReservaHabitacionServicioDTO>>> Get()
+        public async Task<ActionResult<List<ReservaHabitacionServicioDTO>>> ObtenerRHS()
         {
             return await Get<ReservaHabitacionServicio, ReservaHabitacionServicioDTO>();
         }
