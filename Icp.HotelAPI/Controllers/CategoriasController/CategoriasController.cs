@@ -2,6 +2,7 @@
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.CategoriasController.DTO;
+using Icp.HotelAPI.Servicios.CategoriasService.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocal.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -17,41 +18,34 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
         private readonly FCT_ABR_11Context context;
         private readonly IMapper mapper;
         private readonly IAlmacenadorArchivos almacenadorArchivos;
+        private readonly ICategoriaService categoriaService;
         private readonly string contenedor = "categorias";
 
-        public CategoriasController(FCT_ABR_11Context context, IMapper mapper, IAlmacenadorArchivos almacenadorArchivos) : base(context, mapper)
+        public CategoriasController(
+            FCT_ABR_11Context context, 
+            IMapper mapper, 
+            IAlmacenadorArchivos almacenadorArchivos,
+            ICategoriaService categoriaService) 
+            : base(context, mapper)
         {
             this.context = context;
             this.mapper = mapper;
             this.almacenadorArchivos = almacenadorArchivos;
+            this.categoriaService = categoriaService;
         }
 
         // Obtener todas las categorias con tipo cama
         [HttpGet]
-        public async Task<ActionResult<List<CategoriaDetallesDTO>>> Get()
+        public async Task<ActionResult<List<CategoriaDetallesDTO>>> ObtenerCategorias()
         {
-            var entidades = await context.Categorias
-                .Include(x => x.TipoCamas)
-                .ToListAsync();
-            var dtos = mapper.Map<List<CategoriaDetallesDTO>>(entidades);
-            return dtos;
+            return await categoriaService.ObtenerCategorias();
         }
 
         // Obtener categoria por {id} con tipo cama
         [HttpGet("{id}", Name = "obtenerCategoria")]
-        public async Task<ActionResult<CategoriaDetallesDTO>> Get(int id)
+        public async Task<ActionResult<CategoriaDetallesDTO>> ObtenerCategoriaId(int id)
         {
-            var entidad = await context.Categorias
-                .Include(x => x.TipoCamas)
-                .FirstOrDefaultAsync(x => x.Id == id);
-
-            if (entidad == null)
-            {
-                return NotFound();
-            }
-
-            var dto = mapper.Map<CategoriaDetallesDTO>(entidad);
-            return dto;
+            return await categoriaService.ObtenerCategoriaId(id);
         }
 
         // Introducir una nueva categoria con tipos de cama
