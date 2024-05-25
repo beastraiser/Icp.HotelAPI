@@ -38,6 +38,18 @@ namespace Icp.HotelAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
+            //CORS
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigin",
+                    builder =>
+                    {
+                        builder.WithOrigins("http://localhost:4200")
+                               .AllowAnyHeader()
+                               .AllowAnyMethod();
+                    });
+            });
+
             //Configuración del almacenador de archivos local
             services.AddTransient<IAlmacenadorArchivos, AlmacenadorArchivosLocal>();
             services.AddHttpContextAccessor();
@@ -90,6 +102,8 @@ namespace Icp.HotelAPI
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseCors("AllowSpecificOrigin");
 
             app.UseAuthorization();
 
