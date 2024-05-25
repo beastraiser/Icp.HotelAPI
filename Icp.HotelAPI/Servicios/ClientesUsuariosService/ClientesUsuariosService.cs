@@ -48,30 +48,36 @@ namespace Icp.HotelAPI.Servicios.ClientesUsuariosService
 
         public async Task<bool> Registrar(ClienteUsuarioDTO clienteUsuarioDTO)
         {
-            try
+            // Verificaciones
+            var existeCliente = await context.Clientes.FirstOrDefaultAsync(x => x.Dni == clienteUsuarioDTO.DNI);
+            if (existeCliente != null)
             {
-                // Crear el cliente
-                var cliente = mapper.Map<Cliente>(clienteUsuarioDTO);
-                context.Clientes.Add(cliente);
-                await context.SaveChangesAsync();
-
-                // Crear el usuario
-                var usuario = mapper.Map<Usuario>(clienteUsuarioDTO);
-                usuario.Contrasenya = loginService.HashContrasenya(usuario.Contrasenya);
-                context.Usuarios.Add(usuario);
-                await context.SaveChangesAsync();
-
-                // Asociar el cliente y el usuario
-                var clienteUsuario = new ClienteUsuario { IdCliente = cliente.Id, IdUsuario = usuario.Id };
-                context.ClienteUsuarios.Add(clienteUsuario);
-                await context.SaveChangesAsync();
-
-                return true;
+                throw new InvalidOperationException($"Ya existe un cliente con DNI: {clienteUsuarioDTO.DNI}");
             }
-            catch
+
+            var existeUsuario = await context.Usuarios.FirstOrDefaultAsync(x => x.Email == clienteUsuarioDTO.Email);
+            if (existeUsuario != null)
             {
-                return false;
+                throw new InvalidOperationException($"Ya existe un usuario con email: {clienteUsuarioDTO.Email}");
             }
+
+            // Crear el cliente
+            var cliente = mapper.Map<Cliente>(clienteUsuarioDTO);
+            context.Clientes.Add(cliente);
+            await context.SaveChangesAsync();
+
+            // Crear el usuario
+            var usuario = mapper.Map<Usuario>(clienteUsuarioDTO);
+            usuario.Contrasenya = loginService.HashContrasenya(usuario.Contrasenya);
+            context.Usuarios.Add(usuario);
+            await context.SaveChangesAsync();
+
+            // Asociar el cliente y el usuario
+            var clienteUsuario = new ClienteUsuario { IdCliente = cliente.Id, IdUsuario = usuario.Id };
+            context.ClienteUsuarios.Add(clienteUsuario);
+            await context.SaveChangesAsync();
+
+            return true;
         }
     }
 }

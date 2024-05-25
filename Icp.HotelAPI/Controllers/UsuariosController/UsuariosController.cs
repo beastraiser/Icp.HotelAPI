@@ -79,7 +79,20 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
         [AllowAnonymous]
         public async Task<ActionResult<RespuestaAutenticacionDTO>> Login(UsuarioCredencialesDTO usuarioCredencialesDTO)
         {
-            return Ok(await usuarioService.Login(usuarioCredencialesDTO));
+            try
+            {
+                var respuesta = await usuarioService.Login(usuarioCredencialesDTO);
+                return Ok(respuesta);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
         }
 
         // Introducir un nuevo usuario

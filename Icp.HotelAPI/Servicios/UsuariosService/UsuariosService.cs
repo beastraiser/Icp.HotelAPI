@@ -51,13 +51,18 @@ namespace Icp.HotelAPI.Servicios.UsuariosService
             var resultado = await context.Usuarios.FirstOrDefaultAsync(x => x.Email == usuarioCredencialesDTO.Email);
 
             // Vuelvo a hashear la contraseña para evitar errores por inserviones a mano desde SQL
-            resultado.Contrasenya = loginService.HashContrasenya(usuarioCredencialesDTO.Contrasenya);
-            await context.SaveChangesAsync();
+            //resultado.Contrasenya = loginService.HashContrasenya(usuarioCredencialesDTO.Contrasenya);
+            //await context.SaveChangesAsync();
 
 
-            if (resultado == null || !loginService.VerificarContrasenya(usuarioCredencialesDTO.Contrasenya, resultado.Contrasenya))
+            if (resultado == null)
             {
-                throw new InvalidOperationException("Usuario no encontrado o contraseña incorrecta");
+                throw new InvalidOperationException("Usuario no encontrado");
+            }
+
+            if (!loginService.VerificarContrasenya(usuarioCredencialesDTO.Contrasenya, resultado.Contrasenya))
+            {
+                throw new InvalidOperationException("Contraseña incorrecta");
             }
 
             var claims = new List<Claim>()
@@ -82,8 +87,8 @@ namespace Icp.HotelAPI.Servicios.UsuariosService
                     break;
             }
 
-            var token = loginService.ConstruirToken(claims);
-            return token;
+            var respuestaAutenticacion = loginService.ConstruirToken(claims);
+            return respuestaAutenticacion;
         }
     }
 }
