@@ -11,6 +11,8 @@ using Icp.HotelAPI.Servicios.ServiciosService;
 using Icp.HotelAPI.Servicios.ServiciosService.Interfaces;
 using Icp.HotelAPI.Servicios.UsuariosService;
 using Icp.HotelAPI.Servicios.UsuariosService.Interfaces;
+using Icp.HotelAPI.Servicios.ValidateService;
+using Icp.HotelAPI.Servicios.ValidateService.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocal.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.AlmacenadorArchivosLocalService;
 using Icp.HotelAPI.ServiciosCompartidos.LoginService;
@@ -58,7 +60,7 @@ namespace Icp.HotelAPI
             services.AddAutoMapper(typeof(Startup));
 
             // Configuración de la conexión
-            services.AddDbContext<FCT_ABR_11Context>(options => options.UseSqlServer(Configuration.GetConnectionString("HomeConnection")));
+            services.AddDbContext<FCT_ABR_11Context>(options => options.UseSqlServer(Configuration.GetConnectionString("ICPConnection")));
 
             services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles).AddNewtonsoftJson();
 
@@ -87,6 +89,7 @@ namespace Icp.HotelAPI
             services.AddScoped<IHabitacionService, HabitacionesService>();
             services.AddScoped<IServicioService, ServiciosService>();
             services.AddScoped<IUsuarioService, UsuariosService>();
+            services.AddSingleton<IValidateInterface, ValidateService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -105,6 +108,7 @@ namespace Icp.HotelAPI
 
             app.UseCors("AllowSpecificOrigin");
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
