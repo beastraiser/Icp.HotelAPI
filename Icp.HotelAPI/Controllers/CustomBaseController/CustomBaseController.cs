@@ -123,7 +123,6 @@ namespace Icp.HotelAPI.Controllers.CustomBaseController
 
             var entidadDB = await context.Set<TEntidad>().FirstOrDefaultAsync(x => x.Id == id);
 
-            // Verifica si el nº de habitacion existe
             if (entidadDB == null)
             {
                 return NotFound();
