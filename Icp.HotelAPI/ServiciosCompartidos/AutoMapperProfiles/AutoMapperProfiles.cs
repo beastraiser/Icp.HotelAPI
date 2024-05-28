@@ -19,6 +19,11 @@ namespace Icp.HotelAPI.ServiciosCompartidos.Helpers
         {
             CreateMap<Habitacion, HabitacionDTO>().ReverseMap();
             CreateMap<HabitacionPatchDTO, Habitacion>().ReverseMap();
+            CreateMap<Habitacion, HabitacionDetallesDTO>()
+            .ForMember(dest => dest.CategoriaTipo, opt => opt.MapFrom(src => src.IdCategoriaNavigation.Tipo))
+            .ForMember(dest => dest.NumeroCamas, opt => opt.MapFrom(src => src.IdCategoriaNavigation.NumeroCamas))
+            .ForMember(dest => dest.MaximoPersonas, opt => opt.MapFrom(src => src.IdCategoriaNavigation.MaximoPersonas))
+            .ForMember(dest => dest.CosteNoche, opt => opt.MapFrom(src => src.IdCategoriaNavigation.CosteNoche));
 
             CreateMap<Servicio, ServicioDTO>().ReverseMap();
             CreateMap<ServicioCreacionDTO, Servicio>().ReverseMap();

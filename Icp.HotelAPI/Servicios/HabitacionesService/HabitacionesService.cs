@@ -40,5 +40,29 @@ namespace Icp.HotelAPI.Servicios.HabitacionesService
 
             return mapper.Map<List<HabitacionDTO>>(habitaciones);
         }
+
+        public async Task<List<HabitacionDetallesDTO>> ObtenerHabitacionesDisponiblesAsync(DisponibilidadRequestDTO disponibilidadRequestDTO)
+        {
+            var habitaciones = await context.Habitaciones
+                .Include(h => h.IdCategoriaNavigation)
+                .Where(h => h.IdCategoriaNavigation.MaximoPersonas >= disponibilidadRequestDTO.MaximoPersonas)
+                .ToListAsync();
+
+            var habitacionesOcupadas = await context.ReservaHabitacionServicios
+                .Where(rhs =>
+                    (disponibilidadRequestDTO.FechaInicio >= rhs.IdReservaNavigation.FechaInicio && disponibilidadRequestDTO.FechaInicio < rhs.IdReservaNavigation.FechaFin) ||
+                    (disponibilidadRequestDTO.FechaFin <= rhs.IdReservaNavigation.FechaFin && disponibilidadRequestDTO.FechaFin > rhs.IdReservaNavigation.FechaInicio) ||
+                    (rhs.IdReservaNavigation.FechaInicio >= disponibilidadRequestDTO.FechaInicio && rhs.IdReservaNavigation.FechaInicio < disponibilidadRequestDTO.FechaFin) ||
+                    (rhs.IdReservaNavigation.FechaFin <= disponibilidadRequestDTO.FechaFin && rhs.IdReservaNavigation.FechaFin > disponibilidadRequestDTO.FechaInicio) &&
+                    !rhs.IdReservaNavigation.Cancelada)
+                .Select(rhs => rhs.IdHabitacion)
+                .ToListAsync();
+
+            var habitacionesDisponibles = habitaciones
+                .Where(h => !habitacionesOcupadas.Contains(h.Id))
+                .ToList();
+
+            return mapper.Map<List<HabitacionDetallesDTO>>(habitacionesDisponibles);
+        }
     }
 }

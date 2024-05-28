@@ -31,6 +31,7 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
             this.habitacionService = habitacionService;
         }
 
+        
         // Obtener todas las habitaciones
         [HttpGet]
         [AllowAnonymous]
@@ -45,6 +46,15 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
         public async Task<ActionResult<HabitacionDTO>> ObtenerHabitacionesPorId(int id)
         {
             return await Get<Habitacion, HabitacionDTO>(id);
+        }
+
+        // Obtener habitacion por fecha-inicio, fecha-fin y maximo personas
+        [HttpGet("fechas")]
+        [AllowAnonymous]
+        public async Task<ActionResult<List<HabitacionDTO>>> ObtenerHabitacionesDisponibles([FromBody] DisponibilidadRequestDTO disponibilidadRequestDTO)
+        {
+            var habitacionesDisponibles = await habitacionService.ObtenerHabitacionesDisponiblesAsync(disponibilidadRequestDTO);
+            return Ok(habitacionesDisponibles);
         }
 
         // Obtener todas las habitaciones disponibles con paginación (10 resultados máximo por página)
