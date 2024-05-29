@@ -49,7 +49,7 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
         }
 
         // Obtener habitacion por fecha-inicio, fecha-fin y maximo personas
-        [HttpGet("fechas")]
+        [HttpPost("fechas")]
         [AllowAnonymous]
         public async Task<ActionResult<List<HabitacionDTO>>> ObtenerHabitacionesDisponibles([FromBody] DisponibilidadRequestDTO disponibilidadRequestDTO)
         {

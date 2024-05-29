@@ -52,7 +52,7 @@ namespace Icp.HotelAPI.Controllers.ReservasController
 
         // Agregar reserva con habitaciones y servicios y calcular precio
         [HttpPost]
-        public async Task<ActionResult> CrearReserva([FromForm] ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
+        public async Task<ActionResult> CrearReserva([FromBody] ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
         {
             return await reservaService.CrearReserva(reservaCreacionDetallesDTO);
         }
