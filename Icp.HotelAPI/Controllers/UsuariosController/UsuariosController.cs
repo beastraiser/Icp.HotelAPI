@@ -56,6 +56,26 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
             return await Get<Usuario, UsuarioDTO>(id);
         }
 
+        // Obtener usuario por email
+        [HttpPost("email")]
+        [AllowAnonymous]
+        public async Task<ActionResult<UsuarioDTO>> ObtenerUsuarioPorEmail(UsuarioEmailDTO usuarioEmailDTO)
+        {
+            try
+            {
+                return await usuarioService.ObtenerUsuarioPorEmail(usuarioEmailDTO);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+        }
+
         // Renovar Token
         [HttpGet("RenovarToken")]
         [AllowAnonymous]

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.Controllers.ReservasController.DTO;
+using Icp.HotelAPI.Controllers.UsuariosController.DTO;
 using Icp.HotelAPI.Servicios.ReservasService.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -31,9 +32,23 @@ namespace Icp.HotelAPI.Controllers.ReservasController
 
         // Obtener reserva con habitaciones y servicios por id reserva
         [HttpGet("{id}", Name = "obtenerReserva")]
-        public async Task<ActionResult<ReservaDetallesCosteDTO>> ObtenerReservasPorId(int id)
+        public async Task<ActionResult<ReservaDetallesMostrarDTO>> ObtenerReservasPorId(int id)
         {
             return await reservaService.ObtenerReservasPorId(id);
+        }
+
+        // Obtener reserva con habitaciones y servicios por id usuario
+        [HttpGet("usuario/{id}", Name = "obtenerReservaUs")]
+        public async Task<ActionResult<List<ReservaDetallesMostrarDTO>>> ObtenerReservasPorIdUsuario(int id)
+        {
+            return await reservaService.ObtenerReservasPorIdUsuario(id);
+        }
+
+        // Obtener reserva con habitaciones y servicios por id cliente
+        [HttpGet("cliente/{id}", Name = "obtenerReservaCli")]
+        public async Task<ActionResult<List<ReservaDetallesMostrarDTO>>> ObtenerReservasPorIdCliente(int id)
+        {
+            return await reservaService.ObtenerReservasPorIdCliente(id);
         }
 
         // Obtener las reservas con servicios por id habitacion
@@ -54,7 +69,20 @@ namespace Icp.HotelAPI.Controllers.ReservasController
         [HttpPost]
         public async Task<ActionResult> CrearReserva([FromBody] ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
         {
-            return await reservaService.CrearReserva(reservaCreacionDetallesDTO);
+            try
+            {
+                return await reservaService.CrearReserva(reservaCreacionDetallesDTO);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+            
         }
 
         // Cambiar datos reserva por id, incluida habitacion y servicios, y recalcular precio

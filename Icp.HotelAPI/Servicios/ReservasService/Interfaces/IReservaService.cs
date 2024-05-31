@@ -7,7 +7,9 @@ namespace Icp.HotelAPI.Servicios.ReservasService.Interfaces
     public interface IReservaService
     {
         Task<List<ReservaDetallesCosteDTO>> ObtenerReservas();
-        Task<ReservaDetallesCosteDTO> ObtenerReservasPorId(int id);
+        Task<ReservaDetallesMostrarDTO> ObtenerReservasPorId(int id);
+        Task<List<ReservaDetallesMostrarDTO>> ObtenerReservasPorIdUsuario(int id);
+        Task<List<ReservaDetallesMostrarDTO>> ObtenerReservasPorIdCliente(int id);
         Task<List<ReservaDetallesServicioDTO>> ObtenerReservasPorIdHabitacion(int id);
         Task<List<ReservaDetallesCosteDTO>> ObtenerReservasPorIdServicio(int id);
         Task<ActionResult> CrearReserva(ReservaCreacionDetallesDTO reservaCreacionDetallesDTO);
