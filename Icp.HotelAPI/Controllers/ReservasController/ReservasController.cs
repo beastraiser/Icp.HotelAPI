@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
+using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.ReservasController.DTO;
 using Icp.HotelAPI.Controllers.UsuariosController.DTO;
 using Icp.HotelAPI.Servicios.ReservasService.Interfaces;
@@ -87,17 +88,17 @@ namespace Icp.HotelAPI.Controllers.ReservasController
 
         // Cambiar datos reserva por id, incluida habitacion y servicios, y recalcular precio
         [HttpPut("{id}")]
-        public async Task<ActionResult> ActualizarReserva(int id, [FromForm] ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
+        public async Task<ActionResult> ActualizarReserva(int id, [FromBody] ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
         {
             var actualizado = await reservaService.ActualizarReserva(id, reservaCreacionDetallesDTO);
 
             if (!actualizado)
             {
-                return BadRequest("La reserva no existe.");
+                return BadRequest(new { Message = "La reserva no existe." });
             }
             else
             {
-                return Ok("La reserva ha sido actualizada correctamente.");
+                return Ok(new { Message = "La reserva ha sido actualizada correctamente." });
             }
             
         }
@@ -109,11 +110,12 @@ namespace Icp.HotelAPI.Controllers.ReservasController
 
             if (cancelado)
             {
-                return Ok("La reserva ha sido cancelada correctamente.");
-            }
+                return Ok(new { Message = "La reserva ha sido cancelada correctamente" });
+                }
             else
             {
-                return BadRequest("La reserva ya ha sido cancelada anteriormente.");
+                return BadRequest(new {
+                    Message = "La reserva ya ha sido cancelada anteriormente."});
             }
         }
 
