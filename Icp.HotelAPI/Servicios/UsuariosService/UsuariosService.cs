@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
+using Icp.HotelAPI.Controllers.Interfaces;
 using Icp.HotelAPI.Controllers.UsuariosController.DTO;
 using Icp.HotelAPI.Servicios.UsuariosService.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.LoginService;
@@ -24,6 +25,16 @@ namespace Icp.HotelAPI.Servicios.UsuariosService
             this.context = context;
             this.mapper = mapper;
             this.loginService = loginService;
+        }
+
+        public async Task<ActionResult<UsuarioDTO>> ObtenerUsuarioPorEmail(UsuarioEmailDTO usuarioEmailDTO)
+        {
+            var entidad = await context.Usuarios.FirstOrDefaultAsync(x => x.Email == usuarioEmailDTO.Email);
+            if (entidad == null)
+            {
+                throw new InvalidOperationException("Usuario no encontrado");
+            }
+            return mapper.Map<UsuarioDTO>(entidad);
         }
 
         public async Task<bool> BorrarUsuario(int id)

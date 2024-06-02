@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
+using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.ReservasController.DTO;
+using Icp.HotelAPI.Controllers.UsuariosController.DTO;
 using Icp.HotelAPI.Servicios.ReservasService.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -31,9 +33,23 @@ namespace Icp.HotelAPI.Controllers.ReservasController
 
         // Obtener reserva con habitaciones y servicios por id reserva
         [HttpGet("{id}", Name = "obtenerReserva")]
-        public async Task<ActionResult<ReservaDetallesCosteDTO>> ObtenerReservasPorId(int id)
+        public async Task<ActionResult<ReservaDetallesMostrarDTO>> ObtenerReservasPorId(int id)
         {
             return await reservaService.ObtenerReservasPorId(id);
+        }
+
+        // Obtener reserva con habitaciones y servicios por id usuario
+        [HttpGet("usuario/{id}", Name = "obtenerReservaUs")]
+        public async Task<ActionResult<List<ReservaDetallesMostrarDTO>>> ObtenerReservasPorIdUsuario(int id)
+        {
+            return await reservaService.ObtenerReservasPorIdUsuario(id);
+        }
+
+        // Obtener reserva con habitaciones y servicios por id cliente
+        [HttpGet("cliente/{id}", Name = "obtenerReservaCli")]
+        public async Task<ActionResult<List<ReservaDetallesMostrarDTO>>> ObtenerReservasPorIdCliente(int id)
+        {
+            return await reservaService.ObtenerReservasPorIdCliente(id);
         }
 
         // Obtener las reservas con servicios por id habitacion
@@ -54,22 +70,35 @@ namespace Icp.HotelAPI.Controllers.ReservasController
         [HttpPost]
         public async Task<ActionResult> CrearReserva([FromBody] ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
         {
-            return await reservaService.CrearReserva(reservaCreacionDetallesDTO);
+            try
+            {
+                return await reservaService.CrearReserva(reservaCreacionDetallesDTO);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+            
         }
 
         // Cambiar datos reserva por id, incluida habitacion y servicios, y recalcular precio
         [HttpPut("{id}")]
-        public async Task<ActionResult> ActualizarReserva(int id, [FromForm] ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
+        public async Task<ActionResult> ActualizarReserva(int id, [FromBody] ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
         {
             var actualizado = await reservaService.ActualizarReserva(id, reservaCreacionDetallesDTO);
 
             if (!actualizado)
             {
-                return BadRequest("La reserva no existe.");
+                return BadRequest(new { Message = "La reserva no existe." });
             }
             else
             {
-                return Ok("La reserva ha sido actualizada correctamente.");
+                return Ok(new { Message = "La reserva ha sido actualizada correctamente." });
             }
             
         }
@@ -81,11 +110,12 @@ namespace Icp.HotelAPI.Controllers.ReservasController
 
             if (cancelado)
             {
-                return Ok("La reserva ha sido cancelada correctamente.");
-            }
+                return Ok(new { Message = "La reserva ha sido cancelada correctamente" });
+                }
             else
             {
-                return BadRequest("La reserva ya ha sido cancelada anteriormente.");
+                return BadRequest(new {
+                    Message = "La reserva ya ha sido cancelada anteriormente."});
             }
         }
 

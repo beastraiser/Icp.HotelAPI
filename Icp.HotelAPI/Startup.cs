@@ -1,6 +1,8 @@
 ﻿using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.Servicios.CategoriasService;
 using Icp.HotelAPI.Servicios.CategoriasService.Interfaces;
+using Icp.HotelAPI.Servicios.ClientesService;
+using Icp.HotelAPI.Servicios.ClientesService.Interfaces;
 using Icp.HotelAPI.Servicios.ClientesUsuariosService;
 using Icp.HotelAPI.Servicios.ClientesUsuariosService.Interfaces;
 using Icp.HotelAPI.Servicios.HabitacionesService;
@@ -58,7 +60,7 @@ namespace Icp.HotelAPI
             services.AddAutoMapper(typeof(Startup));
 
             // Configuración de la conexión
-            services.AddDbContext<FCT_ABR_11Context>(options => options.UseSqlServer(Configuration.GetConnectionString("ICPConnection")));
+            services.AddDbContext<FCT_ABR_11Context>(options => options.UseSqlServer(Configuration.GetConnectionString("HomeConnection")));
 
             services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles).AddNewtonsoftJson();
 
@@ -87,6 +89,7 @@ namespace Icp.HotelAPI
             services.AddScoped<IHabitacionService, HabitacionesService>();
             services.AddScoped<IServicioService, ServiciosService>();
             services.AddScoped<IUsuarioService, UsuariosService>();
+            services.AddScoped<IClienteService, ClientesService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.Controllers.HabitacionesController.DTO;
+using Icp.HotelAPI.Controllers.ReservasController.DTO;
 using Icp.HotelAPI.Servicios.HabitacionesService.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.PaginacionDTO.Helpers;
 using Microsoft.EntityFrameworkCore;
@@ -49,7 +50,9 @@ namespace Icp.HotelAPI.Servicios.HabitacionesService
                 .ToListAsync();
 
             var habitacionesOcupadas = await context.ReservaHabitacionServicios
-                .Where(rhs =>
+            .Where(rhs =>
+                    (disponibilidadRequestDTO.FechaInicio.Date == rhs.IdReservaNavigation.FechaInicio.Date &&
+                        disponibilidadRequestDTO.FechaFin.Date == rhs.IdReservaNavigation.FechaFin.Date) ||
                     (disponibilidadRequestDTO.FechaInicio >= rhs.IdReservaNavigation.FechaInicio && disponibilidadRequestDTO.FechaInicio < rhs.IdReservaNavigation.FechaFin) ||
                     (disponibilidadRequestDTO.FechaFin <= rhs.IdReservaNavigation.FechaFin && disponibilidadRequestDTO.FechaFin > rhs.IdReservaNavigation.FechaInicio) ||
                     (rhs.IdReservaNavigation.FechaInicio >= disponibilidadRequestDTO.FechaInicio && rhs.IdReservaNavigation.FechaInicio < disponibilidadRequestDTO.FechaFin) ||

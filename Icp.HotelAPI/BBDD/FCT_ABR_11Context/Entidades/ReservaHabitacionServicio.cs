@@ -4,7 +4,7 @@
     {
         public int IdReserva { get; set; }
         public int IdHabitacion { get; set; }
-        public int IdServicio { get; set; }
+        public int? IdServicio { get; set; }
 
         public virtual Habitacion IdHabitacionNavigation { get; set; }
         public virtual Reserva IdReservaNavigation { get; set; }

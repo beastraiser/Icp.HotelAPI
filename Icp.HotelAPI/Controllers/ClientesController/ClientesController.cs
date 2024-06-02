@@ -4,6 +4,9 @@ using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Icp.HotelAPI.Controllers.ClientesController.DTO;
+using Icp.HotelAPI.Servicios.ClientesService.Interfaces;
+using Icp.HotelAPI.Controllers.UsuariosController.DTO;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Icp.HotelAPI.Controllers.ClientesController
 {
@@ -13,11 +16,17 @@ namespace Icp.HotelAPI.Controllers.ClientesController
     {
         private readonly FCT_ABR_11Context context;
         private readonly IMapper mapper;
+        private readonly IClienteService clienteService;
 
-        public ClientesController(FCT_ABR_11Context context, IMapper mapper) : base(context, mapper)
+        public ClientesController(
+            FCT_ABR_11Context context, 
+            IMapper mapper,
+            IClienteService clienteService) 
+            : base(context, mapper)
         {
             this.context = context;
             this.mapper = mapper;
+            this.clienteService = clienteService;
         }
 
         // Obtener todos los clientes
@@ -32,6 +41,26 @@ namespace Icp.HotelAPI.Controllers.ClientesController
         public async Task<ActionResult<ClienteDTO>> ObtenerClientesPorId(int id)
         {
             return await Get<Cliente, ClienteDTO>(id);
+        }
+
+        //Obtener clientes por Dni
+        [HttpPost("dni")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ClienteDTO>> ObtenerClientePorDni(ClienteDniDTO clienteDniDTO)
+        {
+            try
+            {
+                return await clienteService.ObtenerClientePorDni(clienteDniDTO);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
         }
 
         // Introducir un nuevo cliente
