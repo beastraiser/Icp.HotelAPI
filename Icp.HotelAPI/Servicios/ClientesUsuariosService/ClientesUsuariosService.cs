@@ -43,16 +43,29 @@ namespace Icp.HotelAPI.Servicios.ClientesUsuariosService
             {
                 throw new InvalidOperationException("El usuario no existe");
             }
-            return mapper.Map<VClienteUsuarioDetallesClienteDTO>(entidad);
+            var dto = mapper.Map<VClienteUsuarioDetallesClienteDTO>(entidad);
+            return dto;
         }
 
         public async Task<bool> Registrar(ClienteUsuarioDTO clienteUsuarioDTO)
         {
             // Verificaciones
             var existeCliente = await context.Clientes.FirstOrDefaultAsync(x => x.Dni == clienteUsuarioDTO.DNI);
-            if (existeCliente != null)
+            var cliente = mapper.Map<Cliente>(clienteUsuarioDTO);
+
+            if (existeCliente == null)
             {
-                throw new InvalidOperationException($"Ya existe un cliente con DNI: {clienteUsuarioDTO.DNI}");
+                // Crear el cliente
+                context.Clientes.Add(cliente);
+                await context.SaveChangesAsync();
+            }
+            else
+            {
+                //cliente.Nombre = clienteUsuarioDTO.Nombre;
+                //cliente.Telefono = clienteUsuarioDTO.Telefono;
+                //cliente.Apellidos = clienteUsuarioDTO.Apellidos;
+                context.Entry(cliente).State = EntityState.Modified;
+                await context.SaveChangesAsync();
             }
 
             var existeUsuario = await context.Usuarios.FirstOrDefaultAsync(x => x.Email == clienteUsuarioDTO.Email);
@@ -60,11 +73,6 @@ namespace Icp.HotelAPI.Servicios.ClientesUsuariosService
             {
                 throw new InvalidOperationException($"Ya existe un usuario con email: {clienteUsuarioDTO.Email}");
             }
-
-            // Crear el cliente
-            var cliente = mapper.Map<Cliente>(clienteUsuarioDTO);
-            context.Clientes.Add(cliente);
-            await context.SaveChangesAsync();
 
             // Crear el usuario
             var usuario = mapper.Map<Usuario>(clienteUsuarioDTO);

@@ -119,9 +119,21 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
         [HttpPost]
         [AllowAnonymous]
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
-        public async Task<ActionResult> CrearNuevoUsuario([FromBody] UsuarioCreacionDTO usuarioCreacionDTO, int id)
+        public async Task<ActionResult<UsuarioDTO>> CrearUsuario([FromBody] UsuarioCreacionDTO usuarioCreacionDTO)
         {
-            return await Post<UsuarioCreacionDTO, Usuario, UsuarioDTO>(usuarioCreacionDTO, "obtenerUsuario", id);
+            try
+            {
+                return Ok(await usuarioService.CrearUsuario(usuarioCreacionDTO));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
         }
 
         // Cambiar datos usuario

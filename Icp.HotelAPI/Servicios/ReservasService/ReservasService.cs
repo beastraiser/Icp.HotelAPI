@@ -70,9 +70,9 @@ namespace Icp.HotelAPI.Servicios.ReservasService
                     .ThenInclude(h => h.IdCategoriaNavigation)
                 .ToListAsync();
 
-            if (entidades == null)
+            if (entidades.Count == 0)
             {
-                throw new InvalidOperationException("La reserva no existe");
+                throw new InvalidOperationException("El usuario no tiene reservas");
             }
             
             var dtos = mapper.Map<List<ReservaDetallesMostrarDTO>>(entidades);
@@ -103,9 +103,9 @@ namespace Icp.HotelAPI.Servicios.ReservasService
                     .ThenInclude(h => h.IdCategoriaNavigation)
                 .ToListAsync();
 
-            if (entidades == null)
+            if (entidades.Count == 0)
             {
-                throw new InvalidOperationException("La reserva no existe");
+                throw new InvalidOperationException("El usuario no tiene reservas");
             }
 
             var dtos = mapper.Map<List<ReservaDetallesMostrarDTO>>(entidades);
@@ -132,7 +132,7 @@ namespace Icp.HotelAPI.Servicios.ReservasService
                 .Where(r => r.ReservaHabitacionServicios.Any(rhs => rhs.IdHabitacion == id))
                 .ToListAsync();
 
-            if (entidades == null || entidades.Count == 0)
+            if (entidades.Count == 0)
             {
                 throw new InvalidOperationException("No hay reservas para la habitacion especificada");
             }

@@ -8,5 +8,6 @@ namespace Icp.HotelAPI.Servicios.UsuariosService.Interfaces
         Task<bool> BorrarUsuario(int id);
         Task<RespuestaAutenticacionDTO> Login(UsuarioCredencialesDTO usuarioCredencialesDTO);
         Task<ActionResult<UsuarioDTO>> ObtenerUsuarioPorEmail(UsuarioEmailDTO usuarioEmailDTO);
+        Task<ActionResult<UsuarioDTO>> CrearUsuario(UsuarioCreacionDTO usuarioCreacionDTO);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
+using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.Interfaces;
 using Icp.HotelAPI.Controllers.UsuariosController.DTO;
 using Icp.HotelAPI.Servicios.UsuariosService.Interfaces;
@@ -36,6 +37,25 @@ namespace Icp.HotelAPI.Servicios.UsuariosService
             }
             return mapper.Map<UsuarioDTO>(entidad);
         }
+
+
+        public async Task<ActionResult<UsuarioDTO>> CrearUsuario(UsuarioCreacionDTO usuarioCreacionDTO)
+        {
+            var existe = await context.Usuarios.AnyAsync(e => e.Email == usuarioCreacionDTO.Email);
+            if (existe)
+            {
+                throw new InvalidOperationException("Ya existe un usuario con ese email");
+            }
+
+            var entidad = mapper.Map<Usuario>(usuarioCreacionDTO);
+            entidad.Contrasenya = loginService.HashContrasenya(entidad.Contrasenya);
+            context.Add(entidad);
+            await context.SaveChangesAsync();
+            var dtoLectura = mapper.Map<UsuarioDTO>(entidad);
+            return new CreatedAtRouteResult("obtenerUsuario", dtoLectura);
+        }
+
+
 
         public async Task<bool> BorrarUsuario(int id)
         {

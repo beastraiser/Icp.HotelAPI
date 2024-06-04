@@ -45,7 +45,20 @@ namespace Icp.HotelAPI.Controllers.ClientesUsuariosController
         [HttpGet("usuario/{id}", Name = "obtenerClienteUsuario")]
         public async Task<ActionResult<VClienteUsuarioDetallesClienteDTO>> ObtenerClienteUsuarioPorIdUsuario(int id)
         {
-            return await clientesUsuariosService.ObtenerClienteUsuarioPorIdUsuario(id);
+            try
+            {
+                return Ok(await clientesUsuariosService.ObtenerClienteUsuarioPorIdUsuario(id));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+            
         }
 
         // Registrar nuevo usuario

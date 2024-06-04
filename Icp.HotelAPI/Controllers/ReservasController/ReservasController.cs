@@ -42,14 +42,41 @@ namespace Icp.HotelAPI.Controllers.ReservasController
         [HttpGet("usuario/{id}", Name = "obtenerReservaUs")]
         public async Task<ActionResult<List<ReservaDetallesMostrarDTO>>> ObtenerReservasPorIdUsuario(int id)
         {
-            return await reservaService.ObtenerReservasPorIdUsuario(id);
+            try
+            {
+                return await reservaService.ObtenerReservasPorIdUsuario(id);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+            
         }
 
         // Obtener reserva con habitaciones y servicios por id cliente
         [HttpGet("cliente/{id}", Name = "obtenerReservaCli")]
         public async Task<ActionResult<List<ReservaDetallesMostrarDTO>>> ObtenerReservasPorIdCliente(int id)
         {
-            return await reservaService.ObtenerReservasPorIdCliente(id);
+            try
+            {
+                return await reservaService.ObtenerReservasPorIdCliente(id);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+
+            
         }
 
         // Obtener las reservas con servicios por id habitacion
