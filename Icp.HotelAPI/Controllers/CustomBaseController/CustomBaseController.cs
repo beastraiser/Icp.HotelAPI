@@ -45,15 +45,12 @@ namespace Icp.HotelAPI.Controllers.CustomBaseController
         protected async Task<List<TDTO>> Get<TEntidad, TDTO>(PaginacionDTO paginacionDTO) 
             where TEntidad : class
         {
-            var disponible = context.Set<TEntidad>()
+            var habitacion = context.Set<TEntidad>()
                 .AsQueryable();
 
-            disponible = disponible.Where(e => EF.Property<bool>(e, "Disponibilidad") == true);
+            await HttpContext.InsertarParametrosPaginacion(habitacion, paginacionDTO.CantidadRegistrosPorPagina);
 
-            var queryable = disponible.AsQueryable();
-            await HttpContext.InsertarParametrosPaginacion(queryable, paginacionDTO.CantidadRegistrosPorPagina);
-
-            var entidades = await queryable.Paginar(paginacionDTO).ToListAsync();
+            var entidades = await habitacion.Paginar(paginacionDTO).ToListAsync();
             var dtos = mapper.Map<List<TDTO>>(entidades);
             return dtos;
         }
@@ -70,6 +67,7 @@ namespace Icp.HotelAPI.Controllers.CustomBaseController
             }
 
             var entidad = mapper.Map<TEntidad>(creacionDTO);
+            entidad.Id = id;
             context.Add(entidad);
             await context.SaveChangesAsync();
             var dtoLectura = mapper.Map<TLectura>(entidad);
@@ -82,7 +80,6 @@ namespace Icp.HotelAPI.Controllers.CustomBaseController
             foreach( var nombreCampo in  nombresCampos )
             {
                 var valorCampo = typeof(TCreacion).GetProperty(nombreCampo).GetValue(creacionDTO);
-                //var valorCampo = infoPropiedad.GetValue(creacionDTO);
 
                 var existe = await context.Set<TEntidad>().AnyAsync(e => EF.Property<object>(e, nombreCampo).Equals(valorCampo));
 

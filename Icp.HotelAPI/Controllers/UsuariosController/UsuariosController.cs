@@ -76,6 +76,26 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
             }
         }
 
+        // Verificar datos usuario
+        [HttpPost("check")]
+        [AllowAnonymous]
+        public async Task<ActionResult<UsuarioDTO>> VerificarDatosUsuario(UsuarioCredencialesDTO usuarioCredencialesDTO)
+        {
+            try
+            {
+                return await usuarioService.VerificarDatosUsuario(usuarioCredencialesDTO);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+        }
+
         // Renovar Token
         [HttpGet("RenovarToken")]
         [AllowAnonymous]
@@ -140,9 +160,27 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
         [HttpPut("{id}")]
         [AllowAnonymous]
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "CLIENTE")]
-        public async Task<ActionResult> CambiarDatosUsuario(int id, [FromBody] UsuarioCreacionDTO usuarioCreacionDTO)
+        public async Task<ActionResult> ActualizarUsuario(int id, [FromBody] UsuarioCreacionDTO usuarioCreacionDTO)
         {
-            return await Put<UsuarioCreacionDTO, Usuario>(usuarioCreacionDTO, id);
+            try
+            {
+                var respuesta = await usuarioService.ActualizarUsuario(id, usuarioCreacionDTO);
+                if (respuesta)
+                {
+                    return Ok();
+                }
+                return BadRequest();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+           
         }
 
         // Cambiar un dato especifico
@@ -163,7 +201,7 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
             var borrado = await usuarioService.BorrarUsuario(id);
             if (borrado)
             {
-                return Ok("El usuario ha sido eliminado correctamente.");
+                return Ok(new { Message = "El usuario ha sido eliminado correctamente" });
             }
             return BadRequest("El usuario no existe");
         }

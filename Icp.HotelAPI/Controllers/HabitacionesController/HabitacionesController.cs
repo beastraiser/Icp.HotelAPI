@@ -2,6 +2,7 @@
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.HabitacionesController.DTO;
+using Icp.HotelAPI.Controllers.UsuariosController.DTO;
 using Icp.HotelAPI.Servicios.HabitacionesService.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.PaginacionDTO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -57,8 +58,8 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
             return Ok(habitacionesDisponibles);
         }
 
-        // Obtener todas las habitaciones disponibles con paginación (10 resultados máximo por página)
-        [HttpGet("disponibles")]
+        // Obtener todas las habitaciones con paginación (10 resultados máximo por página)
+        [HttpGet("paginacion")]
         [AllowAnonymous]
         public async Task<ActionResult<List<HabitacionDTO>>> Get([FromQuery] PaginacionDTO paginacionDTO)
         {
@@ -76,17 +77,34 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
         // Introducir una nueva habitacion
         [HttpPost("{id}")]
         [AllowAnonymous]
-        public async Task<ActionResult> CrearNuevaHabitacion([FromBody] HabitacionDTO habitacionDTO, int id)
+        public async Task<ActionResult> CrearNuevaHabitacion([FromBody] HabitacionPatchDTO habitacionDTO, int id)
         {
-            return await Post<HabitacionDTO, Habitacion, HabitacionDTO>(habitacionDTO, "obtenerHabitacion", id);
+            return await Post<HabitacionPatchDTO, Habitacion, HabitacionDTO>(habitacionDTO, "obtenerHabitacion", id);
         }
 
         // Cambiar datos habitacion por id
         [HttpPut("{id}")]
         [AllowAnonymous]
-        public async Task<ActionResult> CambiarDatosHabitacion(int id, [FromBody] HabitacionPatchDTO habitacionDTO)
+        public async Task<ActionResult> CambiarDatosHabitacion(int id, [FromBody] HabitacionPatchDTO habitacionPatchDTO)
         {
-            return await Put<HabitacionPatchDTO, Habitacion>(habitacionDTO, id);
+            try
+            {
+                var respuesta = await habitacionService.ActualizarHabitacion(id, habitacionPatchDTO);
+                if (respuesta)
+                {
+                    return Ok();
+                }
+                return BadRequest();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
         }
 
         // Cambiar disponibilidad/categoria

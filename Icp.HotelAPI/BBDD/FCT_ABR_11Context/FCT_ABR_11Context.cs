@@ -132,8 +132,6 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
                     .ValueGeneratedNever()
                     .HasColumnName("ID");
 
-                entity.Property(e => e.Disponibilidad).HasColumnName("DISPONIBILIDAD");
-
                 entity.Property(e => e.IdCategoria).HasColumnName("ID_CATEGORIA");
 
                 entity.HasOne(d => d.IdCategoriaNavigation)

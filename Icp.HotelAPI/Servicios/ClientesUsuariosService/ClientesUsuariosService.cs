@@ -51,23 +51,31 @@ namespace Icp.HotelAPI.Servicios.ClientesUsuariosService
         {
             // Verificaciones
             var existeCliente = await context.Clientes.FirstOrDefaultAsync(x => x.Dni == clienteUsuarioDTO.DNI);
-            var cliente = mapper.Map<Cliente>(clienteUsuarioDTO);
+            Cliente cliente;
 
-            if (existeCliente == null)
+            if (existeCliente != null)
             {
-                // Crear el cliente
-                context.Clientes.Add(cliente);
-                await context.SaveChangesAsync();
+                // Modifica el cliente con los últimos datos recibidos
+                cliente = existeCliente;
+                mapper.Map(clienteUsuarioDTO, cliente);
+                context.Entry(cliente).State = EntityState.Modified;
             }
             else
             {
-                //cliente.Nombre = clienteUsuarioDTO.Nombre;
-                //cliente.Telefono = clienteUsuarioDTO.Telefono;
-                //cliente.Apellidos = clienteUsuarioDTO.Apellidos;
-                context.Entry(cliente).State = EntityState.Modified;
-                await context.SaveChangesAsync();
+                // Crea el cliente
+                cliente = mapper.Map<Cliente>(clienteUsuarioDTO);
+                context.Clientes.Add(cliente);
+            }
+            await context.SaveChangesAsync();
+
+            // Verificar si el cliente ya tiene una cuenta asociada antes de crear el usuario
+            var existeClienteUsuario = await context.ClienteUsuarios.FirstOrDefaultAsync(c => c.IdCliente == cliente.Id);
+            if (existeClienteUsuario != null)
+            {
+                throw new InvalidOperationException($"Este cliente ya tiene una cuenta de usuario asociada");
             }
 
+            // Verificar si el usuario ya existe
             var existeUsuario = await context.Usuarios.FirstOrDefaultAsync(x => x.Email == clienteUsuarioDTO.Email);
             if (existeUsuario != null)
             {

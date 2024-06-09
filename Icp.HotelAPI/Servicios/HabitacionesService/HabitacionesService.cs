@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
+using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.HabitacionesController.DTO;
 using Icp.HotelAPI.Controllers.ReservasController.DTO;
 using Icp.HotelAPI.Servicios.HabitacionesService.Interfaces;
@@ -24,10 +25,18 @@ namespace Icp.HotelAPI.Servicios.HabitacionesService
             this.httpContextAccessor = httpContextAccessor;
         }
 
+        public async Task<bool> ActualizarHabitacion(int id, HabitacionPatchDTO habitacionPatchDTO)
+        {
+            var entidad = mapper.Map<Habitacion>(habitacionPatchDTO);
+            entidad.Id = id;
+            context.Entry(entidad).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<List<HabitacionDTO>> Filtrar(FiltroHabitacionDTO filtroHabitacionDTO)
         {
             var habitacionesQueryable = context.Habitaciones
-                .Where(x => x.Disponibilidad == true)
                 .AsQueryable();
 
             if (filtroHabitacionDTO.IdCategoria != 0)
