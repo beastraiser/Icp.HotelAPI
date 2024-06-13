@@ -14,7 +14,6 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 {
     [ApiController]
     [Route("api/habitaciones")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class HabitacionesController : CustomBaseController.CustomBaseController
     {
         private readonly FCT_ABR_11Context context;
@@ -35,7 +34,6 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
         
         // Obtener todas las habitaciones
         [HttpGet]
-        [AllowAnonymous]
         public async Task<ActionResult<List<HabitacionDTO>>> ObtenerHabitaciones()
         {
             return await Get<Habitacion, HabitacionDTO>();
@@ -43,7 +41,6 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 
         // Obtener habitacion por {id}
         [HttpGet("{id}", Name = "obtenerHabitacion")]
-        [AllowAnonymous]
         public async Task<ActionResult<HabitacionDTO>> ObtenerHabitacionesPorId(int id)
         {
             return await Get<Habitacion, HabitacionDTO>(id);
@@ -51,7 +48,6 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 
         // Obtener habitacion por fecha-inicio, fecha-fin y maximo personas
         [HttpPost("fechas")]
-        [AllowAnonymous]
         public async Task<ActionResult<List<HabitacionDTO>>> ObtenerHabitacionesDisponibles([FromBody] DisponibilidadRequestDTO disponibilidadRequestDTO)
         {
             var habitacionesDisponibles = await habitacionService.ObtenerHabitacionesDisponiblesAsync(disponibilidadRequestDTO);
@@ -60,7 +56,6 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 
         // Obtener todas las habitaciones con paginación (10 resultados máximo por página)
         [HttpGet("paginacion")]
-        [AllowAnonymous]
         public async Task<ActionResult<List<HabitacionDTO>>> Get([FromQuery] PaginacionDTO paginacionDTO)
         {
             return await Get<Habitacion, HabitacionDTO>(paginacionDTO);
@@ -68,7 +63,6 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 
         // Filtro por categoria y disponibilidad = true con paginación
         [HttpGet("categoria")]
-        [AllowAnonymous]
         public async Task<ActionResult<List<HabitacionDTO>>> Filtrar([FromQuery] FiltroHabitacionDTO filtroHabitacionDTO)
         {
             return await habitacionService.Filtrar(filtroHabitacionDTO);
@@ -76,7 +70,7 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 
         // Introducir una nueva habitacion
         [HttpPost("{id}")]
-        [AllowAnonymous]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> CrearNuevaHabitacion([FromBody] HabitacionPatchDTO habitacionDTO, int id)
         {
             return await Post<HabitacionPatchDTO, Habitacion, HabitacionDTO>(habitacionDTO, "obtenerHabitacion", id);
@@ -84,7 +78,7 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 
         // Cambiar datos habitacion por id
         [HttpPut("{id}")]
-        [AllowAnonymous]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> CambiarDatosHabitacion(int id, [FromBody] HabitacionPatchDTO habitacionPatchDTO)
         {
             try
@@ -109,7 +103,6 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 
         // Cambiar disponibilidad/categoria
         [HttpPatch("{id}")]
-        [AllowAnonymous]
         public async Task<ActionResult> CambiarCampoHabitacion(int id, JsonPatchDocument<HabitacionPatchDTO> patchDocument)
         {
             return await Patch<Habitacion, HabitacionPatchDTO>(id, patchDocument);
@@ -117,7 +110,7 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 
         // Borrar habitacion por {id}
         [HttpDelete("{id}")]
-        [AllowAnonymous]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> BorrarHabitacion(int id)
         {
             return await Delete<Habitacion>(id);

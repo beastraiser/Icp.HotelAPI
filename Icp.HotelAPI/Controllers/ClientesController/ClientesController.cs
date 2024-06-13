@@ -7,6 +7,7 @@ using Icp.HotelAPI.Controllers.ClientesController.DTO;
 using Icp.HotelAPI.Servicios.ClientesService.Interfaces;
 using Icp.HotelAPI.Controllers.UsuariosController.DTO;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Icp.HotelAPI.Controllers.ClientesController
 {
@@ -31,6 +32,7 @@ namespace Icp.HotelAPI.Controllers.ClientesController
 
         // Obtener todos los clientes
         [HttpGet]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult<List<ClienteDTO>>> ObtenerClientes()
         {
             return await Get<Cliente, ClienteDTO>();
@@ -38,6 +40,7 @@ namespace Icp.HotelAPI.Controllers.ClientesController
 
         // Obtener clientes por {id}
         [HttpGet("{id}", Name = "obtenerCliente")]
+        [AllowAnonymous]
         public async Task<ActionResult<ClienteDTO>> ObtenerClientesPorId(int id)
         {
             return await Get<Cliente, ClienteDTO>(id);
@@ -65,6 +68,7 @@ namespace Icp.HotelAPI.Controllers.ClientesController
 
         // Introducir un nuevo cliente
         [HttpPost]
+        [AllowAnonymous]
         public async Task<ActionResult> CrearNuevoCliente([FromBody] ClienteCreacionDTO clienteCreacionDTO)
         {
             return await Post<ClienteCreacionDTO, Cliente, ClienteDTO>(clienteCreacionDTO, "obtenerCliente", "Dni", "Telefono");
@@ -72,6 +76,7 @@ namespace Icp.HotelAPI.Controllers.ClientesController
 
         // Cambiar datos cliente
         [HttpPut("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "NOTRECEPCION")]
         public async Task<ActionResult> CambiarDatosCliente(int id, [FromBody] ClienteCreacionDTO clienteCreacionDTO)
         {
             return await Put<ClienteCreacionDTO, Cliente>(clienteCreacionDTO, id);
@@ -79,16 +84,26 @@ namespace Icp.HotelAPI.Controllers.ClientesController
 
         // Cambiar un dato especifico
         [HttpPatch("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult> CambiarCampoCliente(int id, JsonPatchDocument<ClienteCreacionDTO> patchDocument)
         {
             return await Patch<Cliente, ClienteCreacionDTO>(id, patchDocument);
         }
 
         // Borrar cliente por {id}
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> BorrarCliente(int id)
         {
-            return await Delete<Cliente>(id);
+            var resultado = await clienteService.BorrarCliente(id);
+
+            if (!resultado)
+            {
+                return Ok();
+            }
+
+            return NoContent();
         }
+
     }
 }

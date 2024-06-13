@@ -15,7 +15,6 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 {
     [ApiController]
     [Route("api/usuarios")]
-    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class UsuariosController : CustomBaseController.CustomBaseController
     {
         private readonly FCT_ABR_11Context context;
@@ -40,8 +39,7 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Obtener todos los usuarios
         [HttpGet]
-        [AllowAnonymous]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "RECEPCION")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult<List<UsuarioDTO>>> ObtenerUsuarios()
         {
             return await Get<Usuario, UsuarioDTO>();
@@ -49,7 +47,6 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Obtener usuarios por {id}
         [HttpGet("{id}", Name = "obtenerUsuario")]
-        [AllowAnonymous]
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "RECEPCION")]
         public async Task<ActionResult<UsuarioDTO>> ObtenerUsuariosPorId(int id)
         {
@@ -58,7 +55,6 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Obtener usuario por email
         [HttpPost("email")]
-        [AllowAnonymous]
         public async Task<ActionResult<UsuarioDTO>> ObtenerUsuarioPorEmail(UsuarioEmailDTO usuarioEmailDTO)
         {
             try
@@ -67,7 +63,7 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
             }
             catch (InvalidOperationException ex)
             {
-                return Unauthorized(new { ex.Message });
+                return NotFound(new { ex.Message });
             }
             catch (Exception ex)
             {
@@ -78,7 +74,6 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Verificar datos usuario
         [HttpPost("check")]
-        [AllowAnonymous]
         public async Task<ActionResult<UsuarioDTO>> VerificarDatosUsuario(UsuarioCredencialesDTO usuarioCredencialesDTO)
         {
             try
@@ -98,7 +93,7 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Renovar Token
         [HttpGet("RenovarToken")]
-        [AllowAnonymous]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "LOGGED")]
         public ActionResult<RespuestaAutenticacionDTO> Renovar()
         {
             var email = User.Claims.FirstOrDefault(c => c.Type == "email").Value;
@@ -116,7 +111,6 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Login
         [HttpPost("login")]
-        [AllowAnonymous]
         public async Task<ActionResult<RespuestaAutenticacionDTO>> Login(UsuarioCredencialesDTO usuarioCredencialesDTO)
         {
             try
@@ -137,8 +131,7 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Introducir un nuevo usuario
         [HttpPost]
-        [AllowAnonymous]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult<UsuarioDTO>> CrearUsuario([FromBody] UsuarioCreacionDTO usuarioCreacionDTO)
         {
             try
@@ -158,8 +151,7 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Cambiar datos usuario
         [HttpPut("{id}")]
-        [AllowAnonymous]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "CLIENTE")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "NOTRECEPCION")]
         public async Task<ActionResult> ActualizarUsuario(int id, [FromBody] UsuarioCreacionDTO usuarioCreacionDTO)
         {
             try
@@ -185,8 +177,7 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Cambiar un dato especifico
         [HttpPatch("{id}")]
-        [AllowAnonymous]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "CLIENTE")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> CambiarCampoUsuario(int id, JsonPatchDocument<UsuarioCreacionDTO> patchDocument)
         {
             return await Patch<Usuario, UsuarioCreacionDTO>(id, patchDocument);
@@ -194,8 +185,7 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Borrar usuario y cliente asociado
         [HttpDelete("{id}")]
-        [AllowAnonymous]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "RECEPCION")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "NOTRECEPCION")]
         public async Task<ActionResult> BorrarUsuario(int id)
         {
             var borrado = await usuarioService.BorrarUsuario(id);

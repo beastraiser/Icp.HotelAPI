@@ -30,5 +30,34 @@ namespace Icp.HotelAPI.Servicios.ClientesService
             }
             return mapper.Map<ClienteDTO>(entidad);
         }
+
+        public async Task<bool> BorrarCliente(int id)
+        {
+            var cliente = await context.Clientes.FirstOrDefaultAsync(c => c.Id == id);
+
+            if (cliente == null)
+            {
+                return false;
+            }
+
+            var clienteUsuario = await context.ClienteUsuarios.FirstOrDefaultAsync(cu => cu.IdCliente == id);
+
+            if (clienteUsuario != null)
+            {
+                var usuario = await context.Usuarios.FirstOrDefaultAsync(u => u.Id == clienteUsuario.IdUsuario);
+
+                if (usuario != null)
+                {
+                    context.ClienteUsuarios.Remove(clienteUsuario);
+                    context.Usuarios.Remove(usuario);
+                }
+            }
+
+            context.Clientes.Remove(cliente);
+
+            await context.SaveChangesAsync();
+            return true;
+        }
+
     }
 }

@@ -3,6 +3,8 @@ using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.CategoriasController.DTO;
 using Icp.HotelAPI.Servicios.CategoriasService.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +12,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
 {
     [ApiController]
     [Route("api/categorias")]
-
+    
     public class CategoriasController : CustomBaseController.CustomBaseController
     {
         private readonly FCT_ABR_11Context context;
@@ -44,6 +46,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
 
         // Introducir una nueva categoria con tipos de cama
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> NuevaCategoria([FromForm] CategoriaCreacionDTO categoriaCreacionDTO)
         {
             return await categoriaService.NuevaCategoria(categoriaCreacionDTO);
@@ -51,6 +54,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
 
         // Cambiar foto
         [HttpPut("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> CambiarDatosCategoria(int id, [FromForm] CategoriaCreacionDTO categoriaCreacionDTO)
         {
             var exito = await categoriaService.CambiarDatosCategoria(id, categoriaCreacionDTO);
@@ -67,6 +71,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
 
         // Cambiar datos categoria por {id}
         [HttpPatch("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> Patch(int id, JsonPatchDocument<CategoriaPatchDTO> patchDocument)
         {
             return await Patch<Categoria, CategoriaPatchDTO>(id, patchDocument);
@@ -74,6 +79,7 @@ namespace Icp.HotelAPI.Controllers.CategoriasController
 
         // Borrar categoria y tipos de cama por {id}
         [HttpDelete("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> BorrarCategoria(int id)
         {
             var exito = await categoriaService.BorrarCategoria(id);

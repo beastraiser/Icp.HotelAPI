@@ -60,7 +60,7 @@ namespace Icp.HotelAPI
             services.AddAutoMapper(typeof(Startup));
 
             // Configuración de la conexión
-            services.AddDbContext<FCT_ABR_11Context>(options => options.UseSqlServer(Configuration.GetConnectionString("HomeConnection")));
+            services.AddDbContext<FCT_ABR_11Context>(options => options.UseSqlServer(Configuration.GetConnectionString("ICPConnection")));
 
             services.AddControllers()
                 .AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
@@ -80,9 +80,12 @@ namespace Icp.HotelAPI
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("ADMIN", policy => policy.RequireClaim("ADMIN"));
-                options.AddPolicy("RECEPCION", policy => policy.RequireClaim("RECEPCION", "ADMIN"));
-                options.AddPolicy("CLIENTE", policy => policy.RequireClaim("CLIENTE", "RECEPCION", "ADMIN"));
+                options.AddPolicy("ADMIN", policy => policy.RequireClaim("rol", "ADMIN"));
+                options.AddPolicy("RECEPCION", policy => policy.RequireClaim("rol", "RECEPCION"));
+                options.AddPolicy("CLIENTE", policy => policy.RequireClaim("rol", "CLIENTE"));
+                options.AddPolicy("LOGGED", policy => policy.RequireClaim("rol", "CLIENTE", "ADMIN", "RECEPCION"));
+                options.AddPolicy("NOTADMIN", policy => policy.RequireClaim("rol", "CLIENTE", "RECEPCION"));
+                options.AddPolicy("NOTRECEPCION", policy => policy.RequireClaim("rol", "CLIENTE", "ADMIN"));
             });
 
             services.AddScoped<ILoginService, LoginService>();

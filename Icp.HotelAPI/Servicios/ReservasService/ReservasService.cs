@@ -53,6 +53,8 @@ namespace Icp.HotelAPI.Servicios.ReservasService
                 throw new InvalidOperationException("El cliente no existe");
             }
 
+            
+
             var dto = mapper.Map<ReservaDetallesMostrarDTO>(entidad);
             dto.NombreCliente = cliente.Nombre;
             dto.ApellidosCliente = cliente.Apellidos;

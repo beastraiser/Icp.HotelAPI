@@ -4,6 +4,8 @@ using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.ReservasController.DTO;
 using Icp.HotelAPI.Controllers.UsuariosController.DTO;
 using Icp.HotelAPI.Servicios.ReservasService.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -115,6 +117,7 @@ namespace Icp.HotelAPI.Controllers.ReservasController
 
         // Cambiar datos reserva por id, incluida habitacion y servicios, y recalcular precio
         [HttpPut("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "LOGGED")]
         public async Task<ActionResult> ActualizarReserva(int id, [FromBody] ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
         {
             var actualizado = await reservaService.ActualizarReserva(id, reservaCreacionDetallesDTO);
@@ -130,7 +133,9 @@ namespace Icp.HotelAPI.Controllers.ReservasController
             
         }
 
+        // Cancelar reserva
         [HttpPut("{id}/cancelar")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "LOGGED")]
         public async Task<ActionResult> CancelarReserva(int id)
         {
             var cancelado = await reservaService.CancelarReserva(id);
@@ -165,6 +170,7 @@ namespace Icp.HotelAPI.Controllers.ReservasController
 
         // Borrar todos los datos de una reserva
         [HttpDelete("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> BorrarReserva(int id)
         {
             var borrado = await reservaService.BorrarReserva(id);

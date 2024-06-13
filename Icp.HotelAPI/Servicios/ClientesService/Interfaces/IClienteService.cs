@@ -6,5 +6,6 @@ namespace Icp.HotelAPI.Servicios.ClientesService.Interfaces
     public interface IClienteService
     {
         Task<ActionResult<ClienteDTO>> ObtenerClientePorDni(ClienteDniDTO clienteDniDTO);
+        Task<bool> BorrarCliente(int id);
     }
 }
