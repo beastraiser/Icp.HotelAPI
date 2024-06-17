@@ -2,6 +2,8 @@
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.PerfilesController.DTO;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Icp.HotelAPI.Controllers.PerfilesController
@@ -24,6 +26,7 @@ namespace Icp.HotelAPI.Controllers.PerfilesController
 
         // Obtener los perfiles
         [HttpGet]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult<List<PerfilDTO>>> ObtenerPerfiles()
         {
             return await Get<Perfil, PerfilDTO>();
@@ -38,6 +41,7 @@ namespace Icp.HotelAPI.Controllers.PerfilesController
 
         // Introducir un nuevo perfil
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> CrearNuevoPerfil([FromBody] PerfilCreacionDTO perfilCreacionDTO)
         {
             return await Post<PerfilCreacionDTO, Perfil, PerfilDTO>(perfilCreacionDTO, "obtenerPerfil", "Tipo");
@@ -45,6 +49,7 @@ namespace Icp.HotelAPI.Controllers.PerfilesController
 
         // Cambiar datos perfil por {id}
         [HttpPut("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> CambiarDatosPerfil(int id, [FromBody] PerfilCreacionDTO perfilCreacionDTO)
         {
             return await Put<PerfilCreacionDTO, Perfil>(perfilCreacionDTO, id);
@@ -52,6 +57,7 @@ namespace Icp.HotelAPI.Controllers.PerfilesController
 
         // Borrar perfil por {id}
         [HttpDelete("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> BorrarPerfil(int id)
         {
             return await Delete<Perfil>(id);

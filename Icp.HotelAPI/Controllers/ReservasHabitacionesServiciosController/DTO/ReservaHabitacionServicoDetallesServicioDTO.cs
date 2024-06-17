@@ -2,6 +2,6 @@
 {
     public class ReservaHabitacionServicoDetallesServicioDTO
     {
-        public int IdServicio { get; set; }
+        public int? IdServicio { get; set; }
     }
 }

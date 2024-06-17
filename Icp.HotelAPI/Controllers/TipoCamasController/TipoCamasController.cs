@@ -1,11 +1,8 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
-using Icp.HotelAPI.Controllers.CategoriasController.DTO;
-using Icp.HotelAPI.Controllers.ServiciosController.DTO;
 using Icp.HotelAPI.Controllers.TipoCamasController.DTO;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Icp.HotelAPI.Controllers.TipoCamasController
 {

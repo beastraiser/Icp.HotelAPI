@@ -1,6 +1,8 @@
 ﻿using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.Servicios.CategoriasService;
 using Icp.HotelAPI.Servicios.CategoriasService.Interfaces;
+using Icp.HotelAPI.Servicios.ClientesService;
+using Icp.HotelAPI.Servicios.ClientesService.Interfaces;
 using Icp.HotelAPI.Servicios.ClientesUsuariosService;
 using Icp.HotelAPI.Servicios.ClientesUsuariosService.Interfaces;
 using Icp.HotelAPI.Servicios.HabitacionesService;
@@ -38,6 +40,18 @@ namespace Icp.HotelAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
+            //CORS
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins",
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                               .AllowAnyHeader()
+                               .AllowAnyMethod();
+                    });
+            });
+
             //Configuración del almacenador de archivos local
             services.AddTransient<IAlmacenadorArchivos, AlmacenadorArchivosLocal>();
             services.AddHttpContextAccessor();
@@ -46,9 +60,12 @@ namespace Icp.HotelAPI
             services.AddAutoMapper(typeof(Startup));
 
             // Configuración de la conexión
-            services.AddDbContext<FCT_ABR_11Context>(options => options.UseSqlServer(Configuration.GetConnectionString("HomeConnection")));
+            services.AddDbContext<FCT_ABR_11Context>(options => options.UseSqlServer(Configuration.GetConnectionString("ICPConnection")));
 
-            services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles).AddNewtonsoftJson();
+            services.AddControllers()
+                .AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
+                .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null)
+                .AddNewtonsoftJson();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options => options.TokenValidationParameters = new TokenValidationParameters
@@ -63,9 +80,12 @@ namespace Icp.HotelAPI
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("ADMIN", policy => policy.RequireClaim("ADMIN"));
-                options.AddPolicy("RECEPCION", policy => policy.RequireClaim("RECEPCION", "ADMIN"));
-                options.AddPolicy("CLIENTE", policy => policy.RequireClaim("CLIENTE", "RECEPCION", "ADMIN"));
+                options.AddPolicy("ADMIN", policy => policy.RequireClaim("rol", "ADMIN"));
+                options.AddPolicy("RECEPCION", policy => policy.RequireClaim("rol", "RECEPCION"));
+                options.AddPolicy("CLIENTE", policy => policy.RequireClaim("rol", "CLIENTE"));
+                options.AddPolicy("LOGGED", policy => policy.RequireClaim("rol", "CLIENTE", "ADMIN", "RECEPCION"));
+                options.AddPolicy("NOTADMIN", policy => policy.RequireClaim("rol", "CLIENTE", "RECEPCION"));
+                options.AddPolicy("NOTRECEPCION", policy => policy.RequireClaim("rol", "CLIENTE", "ADMIN"));
             });
 
             services.AddScoped<ILoginService, LoginService>();
@@ -75,6 +95,7 @@ namespace Icp.HotelAPI
             services.AddScoped<IHabitacionService, HabitacionesService>();
             services.AddScoped<IServicioService, ServiciosService>();
             services.AddScoped<IUsuarioService, UsuariosService>();
+            services.AddScoped<IClienteService, ClientesService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -91,6 +112,9 @@ namespace Icp.HotelAPI
 
             app.UseRouting();
 
+            app.UseCors("AllowAllOrigins");
+
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

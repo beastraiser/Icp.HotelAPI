@@ -2,6 +2,7 @@
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.ClientesUsuariosController.DTO;
+using Icp.HotelAPI.Controllers.UsuariosController.DTO;
 using Icp.HotelAPI.Servicios.ClientesUsuariosService.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,21 +45,39 @@ namespace Icp.HotelAPI.Controllers.ClientesUsuariosController
         [HttpGet("usuario/{id}", Name = "obtenerClienteUsuario")]
         public async Task<ActionResult<VClienteUsuarioDetallesClienteDTO>> ObtenerClienteUsuarioPorIdUsuario(int id)
         {
-            return await clientesUsuariosService.ObtenerClienteUsuarioPorIdUsuario(id);
+            try
+            {
+                return Ok(await clientesUsuariosService.ObtenerClienteUsuarioPorIdUsuario(id));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+            
         }
 
         // Registrar nuevo usuario
         [HttpPost]
         public async Task<ActionResult> Registrar([FromBody] ClienteUsuarioDTO clienteUsuarioDTO)
         {
-            var exito = await clientesUsuariosService.Registrar(clienteUsuarioDTO);
-            if (exito)
+            try
             {
-                return Ok("Registro satisfactorio");
+                await clientesUsuariosService.Registrar(clienteUsuarioDTO);
+                return Ok(new { Message = "Registro satisfactorio" });
             }
-            else
+            catch (InvalidOperationException ex)
             {
-                return StatusCode(500, "Error en el registro");
+                return BadRequest(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
             }
         }
     }

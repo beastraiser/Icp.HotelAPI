@@ -19,6 +19,11 @@ namespace Icp.HotelAPI.ServiciosCompartidos.Helpers
         {
             CreateMap<Habitacion, HabitacionDTO>().ReverseMap();
             CreateMap<HabitacionPatchDTO, Habitacion>().ReverseMap();
+            CreateMap<Habitacion, HabitacionDetallesDTO>()
+            .ForMember(dest => dest.CategoriaTipo, opt => opt.MapFrom(src => src.IdCategoriaNavigation.Tipo))
+            .ForMember(dest => dest.NumeroCamas, opt => opt.MapFrom(src => src.IdCategoriaNavigation.NumeroCamas))
+            .ForMember(dest => dest.MaximoPersonas, opt => opt.MapFrom(src => src.IdCategoriaNavigation.MaximoPersonas))
+            .ForMember(dest => dest.CosteNoche, opt => opt.MapFrom(src => src.IdCategoriaNavigation.CosteNoche));
 
             CreateMap<Servicio, ServicioDTO>().ReverseMap();
             CreateMap<ServicioCreacionDTO, Servicio>().ReverseMap();
@@ -65,10 +70,16 @@ namespace Icp.HotelAPI.ServiciosCompartidos.Helpers
                 .ForMember(x => x.ReservaHabitacionServicios, options => options.Ignore());
             CreateMap<Reserva, ReservaCreacionDetallesDTO>()
                 .ForMember(x => x.ReservaHabitacionServicios, options => options.MapFrom(MapReservaHabitacionServicioModificacion));
+            CreateMap<Reserva, ReservaDetallesMostrarDTO>()
+                .ForMember(x => x.ReservaHabitacionServicios, options => options.MapFrom(MapReservaHabitacionServicioMostrar))
+                .ForMember(dest => dest.NombreCliente, opt => opt.Ignore())
+                .ForMember(dest => dest.ApellidosCliente, opt => opt.Ignore());
             CreateMap<Reserva, ReservaDetallesCosteDTO>()
-                .ForMember(x => x.ReservaHabitacionServicios, options => options.MapFrom(MapReservaHabitacionServicioCoste));
+                .ForMember(x => x.ReservaHabitacionServicios, options => options.MapFrom(MapReservaHabitacionServicioIds));
 
             CreateMap<ReservaHabitacionServicio, ReservaHabitacionServicioDTO>().ReverseMap();
+            CreateMap<ReservaHabitacionServicioDetallesDTO, ReservaHabitacionServicio>().ReverseMap();
+            CreateMap<ReservaHabitacionServicioIdsDTO, ReservaHabitacionServicio>().ReverseMap();
         }
 
         private List<TipoCamaDetallesDTO> MapCategoriaTipoCamas(Categoria categoria, CategoriaDetallesDTO categoriaDetallesDTO)
@@ -127,7 +138,7 @@ namespace Icp.HotelAPI.ServiciosCompartidos.Helpers
             return resultado;
         }
 
-        private List<ReservaHabitacionServicioDetallesDTO> MapReservaHabitacionServicioCoste(Reserva reserva, ReservaDetallesCosteDTO reservaDetallesCosteDTO)
+        private List<ReservaHabitacionServicioDetallesDTO> MapReservaHabitacionServicioMostrar(Reserva reserva, ReservaDetallesMostrarDTO reservaDetallesCosteDTO)
         {
             var resultado = new List<ReservaHabitacionServicioDetallesDTO>();
             if (reserva.ReservaHabitacionServicios == null)
@@ -136,7 +147,21 @@ namespace Icp.HotelAPI.ServiciosCompartidos.Helpers
             }
             foreach (var habitacionServicio in reserva.ReservaHabitacionServicios)
             {
-                resultado.Add(new ReservaHabitacionServicioDetallesDTO() { IdHabitacion = habitacionServicio.IdHabitacion, IdServicio = habitacionServicio.IdServicio });
+                resultado.Add(new ReservaHabitacionServicioDetallesDTO() { IdHabitacion = habitacionServicio.IdHabitacion, IdServicio = habitacionServicio.IdServicio, NombreServicio = habitacionServicio.IdServicioNavigation.Nombre, TipoHabitacion = habitacionServicio.IdHabitacionNavigation.IdCategoriaNavigation.Tipo });
+            }
+            return resultado;
+        }
+
+        private List<ReservaHabitacionServicioIdsDTO> MapReservaHabitacionServicioIds(Reserva reserva, ReservaDetallesCosteDTO reservaDetallesCosteDTO)
+        {
+            var resultado = new List<ReservaHabitacionServicioIdsDTO>();
+            if (reserva.ReservaHabitacionServicios == null)
+            {
+                return resultado;
+            }
+            foreach (var habitacionServicio in reserva.ReservaHabitacionServicios)
+            {
+                resultado.Add(new ReservaHabitacionServicioIdsDTO() { IdHabitacion = habitacionServicio.IdHabitacion, IdServicio = habitacionServicio.IdServicio });
             }
             return resultado;
         }

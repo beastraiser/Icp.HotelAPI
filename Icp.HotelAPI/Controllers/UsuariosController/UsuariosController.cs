@@ -15,7 +15,6 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 {
     [ApiController]
     [Route("api/usuarios")]
-    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class UsuariosController : CustomBaseController.CustomBaseController
     {
         private readonly FCT_ABR_11Context context;
@@ -40,8 +39,7 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Obtener todos los usuarios
         [HttpGet]
-        [AllowAnonymous]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "RECEPCION")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult<List<UsuarioDTO>>> ObtenerUsuarios()
         {
             return await Get<Usuario, UsuarioDTO>();
@@ -49,16 +47,53 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Obtener usuarios por {id}
         [HttpGet("{id}", Name = "obtenerUsuario")]
-        [AllowAnonymous]
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "RECEPCION")]
         public async Task<ActionResult<UsuarioDTO>> ObtenerUsuariosPorId(int id)
         {
             return await Get<Usuario, UsuarioDTO>(id);
         }
 
+        // Obtener usuario por email
+        [HttpPost("email")]
+        public async Task<ActionResult<UsuarioDTO>> ObtenerUsuarioPorEmail(UsuarioEmailDTO usuarioEmailDTO)
+        {
+            try
+            {
+                return await usuarioService.ObtenerUsuarioPorEmail(usuarioEmailDTO);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+        }
+
+        // Verificar datos usuario
+        [HttpPost("check")]
+        public async Task<ActionResult<UsuarioDTO>> VerificarDatosUsuario(UsuarioCredencialesDTO usuarioCredencialesDTO)
+        {
+            try
+            {
+                return await usuarioService.VerificarDatosUsuario(usuarioCredencialesDTO);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+        }
+
         // Renovar Token
         [HttpGet("RenovarToken")]
-        [AllowAnonymous]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "LOGGED")]
         public ActionResult<RespuestaAutenticacionDTO> Renovar()
         {
             var email = User.Claims.FirstOrDefault(c => c.Type == "email").Value;
@@ -76,34 +111,73 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Login
         [HttpPost("login")]
-        [AllowAnonymous]
         public async Task<ActionResult<RespuestaAutenticacionDTO>> Login(UsuarioCredencialesDTO usuarioCredencialesDTO)
         {
-            return Ok(await usuarioService.Login(usuarioCredencialesDTO));
+            try
+            {
+                var respuesta = await usuarioService.Login(usuarioCredencialesDTO);
+                return Ok(respuesta);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
         }
 
         // Introducir un nuevo usuario
         [HttpPost]
-        [AllowAnonymous]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
-        public async Task<ActionResult> CrearNuevoUsuario([FromBody] UsuarioCreacionDTO usuarioCreacionDTO, int id)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
+        public async Task<ActionResult<UsuarioDTO>> CrearUsuario([FromBody] UsuarioCreacionDTO usuarioCreacionDTO)
         {
-            return await Post<UsuarioCreacionDTO, Usuario, UsuarioDTO>(usuarioCreacionDTO, "obtenerUsuario", id);
+            try
+            {
+                return Ok(await usuarioService.CrearUsuario(usuarioCreacionDTO));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
         }
 
         // Cambiar datos usuario
         [HttpPut("{id}")]
-        [AllowAnonymous]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "CLIENTE")]
-        public async Task<ActionResult> CambiarDatosUsuario(int id, [FromBody] UsuarioCreacionDTO usuarioCreacionDTO)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "NOTRECEPCION")]
+        public async Task<ActionResult> ActualizarUsuario(int id, [FromBody] UsuarioCreacionDTO usuarioCreacionDTO)
         {
-            return await Put<UsuarioCreacionDTO, Usuario>(usuarioCreacionDTO, id);
+            try
+            {
+                var respuesta = await usuarioService.ActualizarUsuario(id, usuarioCreacionDTO);
+                if (respuesta)
+                {
+                    return Ok();
+                }
+                return BadRequest();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+           
         }
 
         // Cambiar un dato especifico
         [HttpPatch("{id}")]
-        [AllowAnonymous]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "CLIENTE")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> CambiarCampoUsuario(int id, JsonPatchDocument<UsuarioCreacionDTO> patchDocument)
         {
             return await Patch<Usuario, UsuarioCreacionDTO>(id, patchDocument);
@@ -111,14 +185,13 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Borrar usuario y cliente asociado
         [HttpDelete("{id}")]
-        [AllowAnonymous]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "RECEPCION")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "NOTRECEPCION")]
         public async Task<ActionResult> BorrarUsuario(int id)
         {
             var borrado = await usuarioService.BorrarUsuario(id);
             if (borrado)
             {
-                return Ok("El usuario ha sido eliminado correctamente.");
+                return Ok(new { Message = "El usuario ha sido eliminado correctamente" });
             }
             return BadRequest("El usuario no existe");
         }

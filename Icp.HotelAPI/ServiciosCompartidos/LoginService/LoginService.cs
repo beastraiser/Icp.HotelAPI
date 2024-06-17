@@ -43,10 +43,15 @@ namespace Icp.HotelAPI.ServiciosCompartidos.LoginService
 
         public string HashContrasenya(string contrasenya)
         {
+            if (IsPasswordHashed(contrasenya))
+            {
+                return contrasenya;
+            }
             using (var sha256 = SHA256.Create())
             {
                 var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(contrasenya));
-                return Convert.ToBase64String(hashedBytes);
+                var hashedString = BitConverter.ToString(hashedBytes).Replace("-", "").ToLower();
+                return hashedString;
             }
         }
 
@@ -56,6 +61,9 @@ namespace Icp.HotelAPI.ServiciosCompartidos.LoginService
             return nuevoHash == hash;
         }
 
-
+        private bool IsPasswordHashed(string password)
+        {
+            return password.Length == 64;
+        }
     }
 }

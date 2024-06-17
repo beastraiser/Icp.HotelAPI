@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
+using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
+using Icp.HotelAPI.Controllers.Interfaces;
 using Icp.HotelAPI.Controllers.UsuariosController.DTO;
 using Icp.HotelAPI.Servicios.UsuariosService.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.LoginService;
 using Icp.HotelAPI.ServiciosCompartidos.LoginService.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using System.Security.Claims;
 
 namespace Icp.HotelAPI.Servicios.UsuariosService
@@ -24,6 +27,46 @@ namespace Icp.HotelAPI.Servicios.UsuariosService
             this.context = context;
             this.mapper = mapper;
             this.loginService = loginService;
+        }
+
+        public async Task<ActionResult<UsuarioDTO>> ObtenerUsuarioPorEmail(UsuarioEmailDTO usuarioEmailDTO)
+        {
+            var entidad = await context.Usuarios.FirstOrDefaultAsync(x => x.Email == usuarioEmailDTO.Email);
+            if (entidad == null)
+            {
+                throw new InvalidOperationException("Usuario no encontrado");
+            }
+            return mapper.Map<UsuarioDTO>(entidad);
+        }
+
+
+        public async Task<ActionResult<UsuarioDTO>> CrearUsuario(UsuarioCreacionDTO usuarioCreacionDTO)
+        {
+            var existe = await context.Usuarios.AnyAsync(e => e.Email == usuarioCreacionDTO.Email);
+            if (existe)
+            {
+                throw new InvalidOperationException("Ya existe un usuario con ese email");
+            }
+
+            var entidad = mapper.Map<Usuario>(usuarioCreacionDTO);
+            entidad.Contrasenya = loginService.HashContrasenya(entidad.Contrasenya);
+            context.Add(entidad);
+            await context.SaveChangesAsync();
+            var dtoLectura = mapper.Map<UsuarioDTO>(entidad);
+            return new CreatedAtRouteResult("obtenerUsuario", dtoLectura);
+        }
+
+        public async Task<bool> ActualizarUsuario(int id, UsuarioCreacionDTO usuarioCreacionDTO)
+        {
+            usuarioCreacionDTO.Contrasenya = loginService.HashContrasenya(usuarioCreacionDTO.Contrasenya);
+
+            var entidad = mapper.Map<Usuario>(usuarioCreacionDTO);
+
+            entidad.Id = id;
+            
+            context.Entry(entidad).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<bool> BorrarUsuario(int id)
@@ -50,14 +93,14 @@ namespace Icp.HotelAPI.Servicios.UsuariosService
         {
             var resultado = await context.Usuarios.FirstOrDefaultAsync(x => x.Email == usuarioCredencialesDTO.Email);
 
-            // Vuelvo a hashear la contraseña para evitar errores por inserviones a mano desde SQL
-            resultado.Contrasenya = loginService.HashContrasenya(usuarioCredencialesDTO.Contrasenya);
-            await context.SaveChangesAsync();
-
-
-            if (resultado == null || !loginService.VerificarContrasenya(usuarioCredencialesDTO.Contrasenya, resultado.Contrasenya))
+            if (resultado == null)
             {
-                throw new InvalidOperationException("Usuario no encontrado o contraseña incorrecta");
+                throw new InvalidOperationException("Usuario no encontrado");
+            }
+
+            if (!loginService.VerificarContrasenya(usuarioCredencialesDTO.Contrasenya, resultado.Contrasenya))
+            {
+                throw new InvalidOperationException("Contraseña incorrecta");
             }
 
             var claims = new List<Claim>()
@@ -82,8 +125,25 @@ namespace Icp.HotelAPI.Servicios.UsuariosService
                     break;
             }
 
-            var token = loginService.ConstruirToken(claims);
-            return token;
+            var respuestaAutenticacion = loginService.ConstruirToken(claims);
+            return respuestaAutenticacion;
+        }
+
+        public async Task<UsuarioDTO> VerificarDatosUsuario(UsuarioCredencialesDTO usuarioCredencialesDTO)
+        {
+            var resultado = await context.Usuarios.FirstOrDefaultAsync(x => x.Email == usuarioCredencialesDTO.Email);
+
+            if (resultado == null)
+            {
+                throw new InvalidOperationException("Usuario no encontrado");
+            }
+
+            if (!loginService.VerificarContrasenya(usuarioCredencialesDTO.Contrasenya, resultado.Contrasenya))
+            {
+                throw new InvalidOperationException("Contraseña incorrecta");
+            }
+
+            return mapper.Map<UsuarioDTO>(resultado); 
         }
     }
 }

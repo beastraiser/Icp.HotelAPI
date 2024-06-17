@@ -43,35 +43,57 @@ namespace Icp.HotelAPI.Servicios.ClientesUsuariosService
             {
                 throw new InvalidOperationException("El usuario no existe");
             }
-            return mapper.Map<VClienteUsuarioDetallesClienteDTO>(entidad);
+            var dto = mapper.Map<VClienteUsuarioDetallesClienteDTO>(entidad);
+            return dto;
         }
 
         public async Task<bool> Registrar(ClienteUsuarioDTO clienteUsuarioDTO)
         {
-            try
+            // Verificaciones
+            var existeCliente = await context.Clientes.FirstOrDefaultAsync(x => x.Dni == clienteUsuarioDTO.DNI);
+            Cliente cliente;
+
+            if (existeCliente != null)
             {
-                // Crear el cliente
-                var cliente = mapper.Map<Cliente>(clienteUsuarioDTO);
+                // Modifica el cliente con los últimos datos recibidos
+                cliente = existeCliente;
+                mapper.Map(clienteUsuarioDTO, cliente);
+                context.Entry(cliente).State = EntityState.Modified;
+            }
+            else
+            {
+                // Crea el cliente
+                cliente = mapper.Map<Cliente>(clienteUsuarioDTO);
                 context.Clientes.Add(cliente);
-                await context.SaveChangesAsync();
-
-                // Crear el usuario
-                var usuario = mapper.Map<Usuario>(clienteUsuarioDTO);
-                usuario.Contrasenya = loginService.HashContrasenya(usuario.Contrasenya);
-                context.Usuarios.Add(usuario);
-                await context.SaveChangesAsync();
-
-                // Asociar el cliente y el usuario
-                var clienteUsuario = new ClienteUsuario { IdCliente = cliente.Id, IdUsuario = usuario.Id };
-                context.ClienteUsuarios.Add(clienteUsuario);
-                await context.SaveChangesAsync();
-
-                return true;
             }
-            catch
+            await context.SaveChangesAsync();
+
+            // Verificar si el cliente ya tiene una cuenta asociada antes de crear el usuario
+            var existeClienteUsuario = await context.ClienteUsuarios.FirstOrDefaultAsync(c => c.IdCliente == cliente.Id);
+            if (existeClienteUsuario != null)
             {
-                return false;
+                throw new InvalidOperationException($"Este cliente ya tiene una cuenta de usuario asociada");
             }
+
+            // Verificar si el usuario ya existe
+            var existeUsuario = await context.Usuarios.FirstOrDefaultAsync(x => x.Email == clienteUsuarioDTO.Email);
+            if (existeUsuario != null)
+            {
+                throw new InvalidOperationException($"Ya existe un usuario con email: {clienteUsuarioDTO.Email}");
+            }
+
+            // Crear el usuario
+            var usuario = mapper.Map<Usuario>(clienteUsuarioDTO);
+            usuario.Contrasenya = loginService.HashContrasenya(usuario.Contrasenya);
+            context.Usuarios.Add(usuario);
+            await context.SaveChangesAsync();
+
+            // Asociar el cliente y el usuario
+            var clienteUsuario = new ClienteUsuario { IdCliente = cliente.Id, IdUsuario = usuario.Id };
+            context.ClienteUsuarios.Add(clienteUsuario);
+            await context.SaveChangesAsync();
+
+            return true;
         }
     }
 }

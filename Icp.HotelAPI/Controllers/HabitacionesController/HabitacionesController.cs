@@ -2,6 +2,7 @@
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context;
 using Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades;
 using Icp.HotelAPI.Controllers.HabitacionesController.DTO;
+using Icp.HotelAPI.Controllers.UsuariosController.DTO;
 using Icp.HotelAPI.Servicios.HabitacionesService.Interfaces;
 using Icp.HotelAPI.ServiciosCompartidos.PaginacionDTO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -13,7 +14,6 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 {
     [ApiController]
     [Route("api/habitaciones")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class HabitacionesController : CustomBaseController.CustomBaseController
     {
         private readonly FCT_ABR_11Context context;
@@ -31,9 +31,9 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
             this.habitacionService = habitacionService;
         }
 
+        
         // Obtener todas las habitaciones
         [HttpGet]
-        [AllowAnonymous]
         public async Task<ActionResult<List<HabitacionDTO>>> ObtenerHabitaciones()
         {
             return await Get<Habitacion, HabitacionDTO>();
@@ -41,15 +41,21 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 
         // Obtener habitacion por {id}
         [HttpGet("{id}", Name = "obtenerHabitacion")]
-        [AllowAnonymous]
         public async Task<ActionResult<HabitacionDTO>> ObtenerHabitacionesPorId(int id)
         {
             return await Get<Habitacion, HabitacionDTO>(id);
         }
 
-        // Obtener todas las habitaciones disponibles con paginación (10 resultados máximo por página)
-        [HttpGet("disponibles")]
-        [AllowAnonymous]
+        // Obtener habitacion por fecha-inicio, fecha-fin y maximo personas
+        [HttpPost("fechas")]
+        public async Task<ActionResult<List<HabitacionDTO>>> ObtenerHabitacionesDisponibles([FromBody] DisponibilidadRequestDTO disponibilidadRequestDTO)
+        {
+            var habitacionesDisponibles = await habitacionService.ObtenerHabitacionesDisponiblesAsync(disponibilidadRequestDTO);
+            return Ok(habitacionesDisponibles);
+        }
+
+        // Obtener todas las habitaciones con paginación (10 resultados máximo por página)
+        [HttpGet("paginacion")]
         public async Task<ActionResult<List<HabitacionDTO>>> Get([FromQuery] PaginacionDTO paginacionDTO)
         {
             return await Get<Habitacion, HabitacionDTO>(paginacionDTO);
@@ -57,7 +63,6 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 
         // Filtro por categoria y disponibilidad = true con paginación
         [HttpGet("categoria")]
-        [AllowAnonymous]
         public async Task<ActionResult<List<HabitacionDTO>>> Filtrar([FromQuery] FiltroHabitacionDTO filtroHabitacionDTO)
         {
             return await habitacionService.Filtrar(filtroHabitacionDTO);
@@ -65,23 +70,39 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 
         // Introducir una nueva habitacion
         [HttpPost("{id}")]
-        [AllowAnonymous]
-        public async Task<ActionResult> CrearNuevaHabitacion([FromBody] HabitacionDTO habitacionDTO, int id)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
+        public async Task<ActionResult> CrearNuevaHabitacion([FromBody] HabitacionPatchDTO habitacionDTO, int id)
         {
-            return await Post<HabitacionDTO, Habitacion, HabitacionDTO>(habitacionDTO, "obtenerHabitacion", id);
+            return await Post<HabitacionPatchDTO, Habitacion, HabitacionDTO>(habitacionDTO, "obtenerHabitacion", id);
         }
 
         // Cambiar datos habitacion por id
         [HttpPut("{id}")]
-        [AllowAnonymous]
-        public async Task<ActionResult> CambiarDatosHabitacion(int id, [FromBody] HabitacionPatchDTO habitacionDTO)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
+        public async Task<ActionResult> CambiarDatosHabitacion(int id, [FromBody] HabitacionPatchDTO habitacionPatchDTO)
         {
-            return await Put<HabitacionPatchDTO, Habitacion>(habitacionDTO, id);
+            try
+            {
+                var respuesta = await habitacionService.ActualizarHabitacion(id, habitacionPatchDTO);
+                if (respuesta)
+                {
+                    return Ok();
+                }
+                return BadRequest();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
         }
 
         // Cambiar disponibilidad/categoria
         [HttpPatch("{id}")]
-        [AllowAnonymous]
         public async Task<ActionResult> CambiarCampoHabitacion(int id, JsonPatchDocument<HabitacionPatchDTO> patchDocument)
         {
             return await Patch<Habitacion, HabitacionPatchDTO>(id, patchDocument);
@@ -89,7 +110,7 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController
 
         // Borrar habitacion por {id}
         [HttpDelete("{id}")]
-        [AllowAnonymous]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> BorrarHabitacion(int id)
         {
             return await Delete<Habitacion>(id);

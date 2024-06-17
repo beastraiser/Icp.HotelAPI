@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Icp.HotelAPI.Controllers.ServiciosController.DTO;
 using Icp.HotelAPI.Servicios.ServiciosService.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Icp.HotelAPI.Controllers.ServiciosController
 {
@@ -57,6 +59,7 @@ namespace Icp.HotelAPI.Controllers.ServiciosController
 
         // Introducir un nuevo servicio
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> CrearServicio([FromBody] ServicioCreacionDTO servicioCreacionDTO)
         {
             return await Post<ServicioCreacionDTO, Servicio, ServicioDTO>(servicioCreacionDTO, "obtenerServicio", "Nombre");
@@ -64,6 +67,7 @@ namespace Icp.HotelAPI.Controllers.ServiciosController
 
         // Cambiar datos servicio
         [HttpPut("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> CambiarDatosServicio(int id, [FromBody] ServicioCreacionDTO servicioCreacionDTO)
         {
             return await Put<ServicioCreacionDTO, Servicio>(servicioCreacionDTO, id);
@@ -71,6 +75,7 @@ namespace Icp.HotelAPI.Controllers.ServiciosController
 
         // Cambiar un dato especifico
         [HttpPatch("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> CambiarCampoServicio(int id, JsonPatchDocument<ServicioCreacionDTO> patchDocument)
         {
             return await Patch<Servicio, ServicioCreacionDTO>(id, patchDocument);
@@ -78,6 +83,7 @@ namespace Icp.HotelAPI.Controllers.ServiciosController
 
         // Borrar servicio
         [HttpDelete("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
         public async Task<ActionResult> BorrarServicio(int id)
         {
             return await Delete<Servicio>(id);

@@ -6,8 +6,5 @@ namespace Icp.HotelAPI.Controllers.HabitacionesController.DTO
     {
         [Required]
         public int IdCategoria { get; set; }
-
-        [Required]
-        public bool Disponibilidad { get; set; }
     }
 }

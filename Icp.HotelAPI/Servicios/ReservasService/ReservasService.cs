@@ -32,10 +32,14 @@ namespace Icp.HotelAPI.Servicios.ReservasService
             return dtos;
         }
 
-        public async Task<ReservaDetallesCosteDTO> ObtenerReservasPorId(int id)
+        public async Task<ReservaDetallesMostrarDTO> ObtenerReservasPorId(int id)
         {
             var entidad = await context.Reservas
                 .Include(x => x.ReservaHabitacionServicios)
+                    .ThenInclude(rhs => rhs.IdServicioNavigation)
+                .Include(x => x.ReservaHabitacionServicios)
+                    .ThenInclude(rhs => rhs.IdHabitacionNavigation)
+                    .ThenInclude(h => h.IdCategoriaNavigation)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (entidad == null)
@@ -43,8 +47,84 @@ namespace Icp.HotelAPI.Servicios.ReservasService
                 throw new InvalidOperationException("La reserva no existe");
             }
 
-            var dto = mapper.Map<ReservaDetallesCosteDTO>(entidad);
+            var cliente = await context.Clientes.FindAsync(entidad.IdCliente);
+            if (cliente == null)
+            {
+                throw new InvalidOperationException("El cliente no existe");
+            }
+
+            
+
+            var dto = mapper.Map<ReservaDetallesMostrarDTO>(entidad);
+            dto.NombreCliente = cliente.Nombre;
+            dto.ApellidosCliente = cliente.Apellidos;
             return dto;
+        }
+
+        public async Task<List<ReservaDetallesMostrarDTO>> ObtenerReservasPorIdUsuario(int id)
+        {
+            var entidades = await context.Reservas
+                .Where(x => x.IdUsuario == id)
+                .Include(x => x.ReservaHabitacionServicios)
+                    .ThenInclude(rhs => rhs.IdServicioNavigation)
+                .Include(x => x.ReservaHabitacionServicios)
+                    .ThenInclude(rhs => rhs.IdHabitacionNavigation)
+                    .ThenInclude(h => h.IdCategoriaNavigation)
+                .ToListAsync();
+
+            if (entidades.Count == 0)
+            {
+                throw new InvalidOperationException("El usuario no tiene reservas");
+            }
+            
+            var dtos = mapper.Map<List<ReservaDetallesMostrarDTO>>(entidades);
+
+            foreach (var dto in dtos)
+            {
+                var cliente = await context.Clientes.FindAsync(dto.IdCliente);
+                if (cliente == null)
+                {
+                    throw new InvalidOperationException($"El cliente no existe en la reserva {dto.Id}");
+                }
+
+                dto.NombreCliente = cliente.Nombre;
+                dto.ApellidosCliente = cliente.Apellidos;
+            }
+            
+            return dtos;
+        }
+
+        public async Task<List<ReservaDetallesMostrarDTO>> ObtenerReservasPorIdCliente(int id)
+        {
+            var entidades = await context.Reservas
+                .Where(x => x.IdCliente == id)
+                .Include(x => x.ReservaHabitacionServicios)
+                    .ThenInclude(rhs => rhs.IdServicioNavigation)
+                .Include(x => x.ReservaHabitacionServicios)
+                    .ThenInclude(rhs => rhs.IdHabitacionNavigation)
+                    .ThenInclude(h => h.IdCategoriaNavigation)
+                .ToListAsync();
+
+            if (entidades.Count == 0)
+            {
+                throw new InvalidOperationException("El usuario no tiene reservas");
+            }
+
+            var dtos = mapper.Map<List<ReservaDetallesMostrarDTO>>(entidades);
+
+            foreach (var dto in dtos)
+            {
+                var cliente = await context.Clientes.FindAsync(dto.IdCliente);
+                if (cliente == null)
+                {
+                    throw new InvalidOperationException($"El cliente no existe en la reserva {dto.Id}");
+                }
+
+                dto.NombreCliente = cliente.Nombre;
+                dto.ApellidosCliente = cliente.Apellidos;
+            }
+
+            return dtos;
         }
 
         public async Task<List<ReservaDetallesServicioDTO>> ObtenerReservasPorIdHabitacion(int id)
@@ -54,7 +134,7 @@ namespace Icp.HotelAPI.Servicios.ReservasService
                 .Where(r => r.ReservaHabitacionServicios.Any(rhs => rhs.IdHabitacion == id))
                 .ToListAsync();
 
-            if (entidades == null || entidades.Count == 0)
+            if (entidades.Count == 0)
             {
                 throw new InvalidOperationException("No hay reservas para la habitacion especificada");
             }
@@ -86,6 +166,11 @@ namespace Icp.HotelAPI.Servicios.ReservasService
                 throw new InvalidOperationException("Una o más habitaciones solicitadas ya están reservadas en las fechas indicadas.");
             }
 
+            if (reservaCreacionDetallesDTO.ReservaHabitacionServicios.Count == 0)
+            {
+                throw new InvalidOperationException("No se puede crear una reserva sin habitaciones, intentelo de nuevo");
+            }
+
             var entidad = mapper.Map<Reserva>(reservaCreacionDetallesDTO);
 
             entidad.CosteTotal = 0M;
@@ -115,7 +200,33 @@ namespace Icp.HotelAPI.Servicios.ReservasService
             context.Update(entidad);
             await context.SaveChangesAsync();
 
-            var entidadDTO = mapper.Map<ReservaDetallesCosteDTO>(entidad);
+            // Obtener información adicional del cliente
+            var cliente = await context.Clientes.FindAsync(reservaCreacionDetallesDTO.IdCliente);
+            if (cliente == null)
+            {
+                throw new InvalidOperationException("El cliente no existe");
+            }
+
+            var entidadDTO = mapper.Map<ReservaDetallesMostrarDTO>(entidad);
+
+            entidadDTO.NombreCliente = cliente.Nombre;
+            entidadDTO.ApellidosCliente = cliente.Apellidos;
+
+            // Obtener información adicional de cada reserva de habitación y servicio
+            foreach (var reservaHabitacionServicio in entidadDTO.ReservaHabitacionServicios)
+            {
+                var habitacion = await context.Habitaciones.FindAsync(reservaHabitacionServicio.IdHabitacion);
+                var servicio = await context.Servicios.FindAsync(reservaHabitacionServicio.IdServicio);
+
+                if (habitacion != null)
+                {
+                    var categoria = await context.Categorias.FindAsync(habitacion.IdCategoria);
+                    reservaHabitacionServicio.TipoHabitacion = categoria.Tipo;
+                }
+
+                reservaHabitacionServicio.NombreServicio = servicio.Nombre;
+            }
+
             return new CreatedAtRouteResult("obtenerReserva", new { id = entidadDTO.Id }, entidadDTO);
         }
 
@@ -282,10 +393,16 @@ namespace Icp.HotelAPI.Servicios.ReservasService
             var existe = await context.ReservaHabitacionServicios
                 .Where(rhs => habitacionesSolicitadas.Contains(rhs.IdHabitacion) &&
                     (
+                        // Reservas que empiezan y terminan en el mismo día
+                        (reservaCreacionDetallesDTO.FechaInicio.Date == rhs.IdReservaNavigation.FechaInicio.Date &&
+                        reservaCreacionDetallesDTO.FechaFin.Date == rhs.IdReservaNavigation.FechaFin.Date) ||
+                        // Reservas que abarcan el día solicitado en la fecha de inicio
                         (reservaCreacionDetallesDTO.FechaInicio >= rhs.IdReservaNavigation.FechaInicio &&
                         reservaCreacionDetallesDTO.FechaInicio < rhs.IdReservaNavigation.FechaFin) ||
+                        // Reservas que abarcan el día solicitado en la fecha de fin
                         (reservaCreacionDetallesDTO.FechaFin <= rhs.IdReservaNavigation.FechaFin &&
                         reservaCreacionDetallesDTO.FechaFin > rhs.IdReservaNavigation.FechaInicio) ||
+                        // Reservas que están completamente dentro del rango solicitado
                         (rhs.IdReservaNavigation.FechaInicio >= reservaCreacionDetallesDTO.FechaInicio &&
                         rhs.IdReservaNavigation.FechaInicio < reservaCreacionDetallesDTO.FechaFin) ||
                         (rhs.IdReservaNavigation.FechaFin <= reservaCreacionDetallesDTO.FechaFin &&

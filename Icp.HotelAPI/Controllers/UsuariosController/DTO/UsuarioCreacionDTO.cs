@@ -14,6 +14,6 @@ namespace Icp.HotelAPI.Controllers.UsuariosController.DTO
         [Required]
         public string Contrasenya { get; set; }
 
-        public DateTime FechaRegistro { get; set; } = DateTime.Now;
+        public DateTime FechaRegistro { get; set; }
     }
 }

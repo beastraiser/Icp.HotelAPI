@@ -11,7 +11,6 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
 
         public int Id { get; set; }
         public int IdCategoria { get; set; }
-        public bool Disponibilidad { get; set; }
 
         public virtual Categoria IdCategoriaNavigation { get; set; }
         public virtual ICollection<ReservaHabitacionServicio> ReservaHabitacionServicios { get; set; }
