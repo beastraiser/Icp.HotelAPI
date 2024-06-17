@@ -17,5 +17,6 @@ namespace Icp.HotelAPI.Servicios.ReservasService.Interfaces
         Task<bool> CancelarReserva(int id);
         Task<bool> CambiarCampoReserva(int id, [FromBody] JsonPatchDocument<ReservaCreacionDetallesDTO> patchDocument);
         Task<bool> BorrarReserva(int id);
+        Task<bool> PagarReserva(int id);
     }
 }

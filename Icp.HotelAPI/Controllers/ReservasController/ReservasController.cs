@@ -95,6 +95,30 @@ namespace Icp.HotelAPI.Controllers.ReservasController
             return await reservaService.ObtenerReservasPorIdServicio(id);
         }
 
+        // Pagar reserva
+        [HttpGet("{id}/pagar", Name = "pagarReserva")]
+        public async Task<ActionResult> PagarReserva(int id)
+        {
+            try
+            {
+                var pagado = await reservaService.PagarReserva(id);
+                if (pagado)
+                {
+                    return Ok();
+                }
+                return BadRequest();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+        }
+
         // Agregar reserva con habitaciones y servicios y calcular precio
         [HttpPost]
         public async Task<ActionResult> CrearReserva([FromBody] ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
@@ -120,17 +144,25 @@ namespace Icp.HotelAPI.Controllers.ReservasController
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "LOGGED")]
         public async Task<ActionResult> ActualizarReserva(int id, [FromBody] ReservaCreacionDetallesDTO reservaCreacionDetallesDTO)
         {
-            var actualizado = await reservaService.ActualizarReserva(id, reservaCreacionDetallesDTO);
+            try
+            {
+                var actualizado = await reservaService.ActualizarReserva(id, reservaCreacionDetallesDTO);
 
-            if (!actualizado)
-            {
-                return BadRequest(new { Message = "La reserva no existe." });
+                if (!actualizado)
+                {
+                    return BadRequest(new { Message = "La reserva no existe." });
+                }
+                    return Ok(new { Message = "La reserva ha sido actualizada correctamente." });
             }
-            else
+            catch (InvalidOperationException ex)
             {
-                return Ok(new { Message = "La reserva ha sido actualizada correctamente." });
+                return BadRequest(new { ex.Message });
             }
-            
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
         }
 
         // Cancelar reserva

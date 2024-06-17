@@ -167,6 +167,10 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
                     .HasColumnName("CANCELADA")
                     .HasDefaultValueSql("((0))");
 
+                entity.Property(e => e.Pagado)
+                    .HasColumnName("PAGADO")
+                    .HasDefaultValueSql("((0))");
+
                 entity.Property(e => e.CosteTotal)
                     .HasColumnType("decimal(6, 2)")
                     .HasColumnName("COSTE_TOTAL");

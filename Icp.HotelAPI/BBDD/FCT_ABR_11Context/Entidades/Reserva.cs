@@ -16,6 +16,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
         public DateTime FechaFin { get; set; }
         public bool Cancelada { get; set; }
         public decimal CosteTotal { get; set; }
+        public bool Pagado { get; set; }
 
         public virtual Cliente IdClienteNavigation { get; set; }
         public virtual Usuario IdUsuarioNavigation { get; set; }

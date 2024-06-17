@@ -7,6 +7,7 @@
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
         public bool Cancelada { get; set; }
+        public bool Pagado { get; set; }
         public decimal CosteTotal { get; set; }
     }
 }
