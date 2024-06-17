@@ -312,6 +312,10 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context
                     .HasColumnName("ID_PERFIL")
                     .HasDefaultValueSql("((4))");
 
+                entity.Property(e => e.Baja)
+                    .HasColumnName("BAJA")
+                    .HasDefaultValueSql("((0))");
+
                 entity.HasOne(d => d.IdPerfilNavigation)
                     .WithMany(p => p.Usuarios)
                     .HasForeignKey(d => d.IdPerfil)

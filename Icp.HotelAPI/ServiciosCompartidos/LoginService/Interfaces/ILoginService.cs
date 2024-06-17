@@ -8,5 +8,6 @@ namespace Icp.HotelAPI.ServiciosCompartidos.LoginService.Interfaces
         RespuestaAutenticacionDTO ConstruirToken(List<Claim> claims);
         public string HashContrasenya(string contrasenya);
         public bool VerificarContrasenya(string contrasenya, string hash);
+        
     }
 }

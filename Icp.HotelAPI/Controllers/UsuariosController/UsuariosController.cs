@@ -47,10 +47,83 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Obtener usuarios por {id}
         [HttpGet("{id}", Name = "obtenerUsuario")]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "RECEPCION")]
         public async Task<ActionResult<UsuarioDTO>> ObtenerUsuariosPorId(int id)
         {
             return await Get<Usuario, UsuarioDTO>(id);
+        }
+
+        // Dar de baja usuario
+        [HttpGet("{id}/baja")]
+        public async Task<ActionResult> BajaUsuario(int id)
+        {
+            try
+            {
+                var respuesta = await usuarioService.BajaUsuario(id);
+                if (respuesta)
+                {
+                    return Ok();
+                }
+                return BadRequest(new { Message = "Usuario no encontrado" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+        }
+
+        // Dar de alta usuario
+        [HttpPut("{id}/altaC")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
+        public async Task<ActionResult> AltaUsuario(int id, [FromBody] UsuarioAltaDTO usuarioAltaDTO)
+        {
+            try
+            {
+                var respuesta = await usuarioService.AltaUsuario(id, usuarioAltaDTO);
+                if (respuesta)
+                {
+                    return Ok();
+                }
+                return BadRequest();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
+        }
+
+        // Dar de alta trabajador
+        [HttpGet("{id}/altaT")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "ADMIN")]
+        public async Task<ActionResult> AltaTrabajador(int id)
+        {
+            try
+            {
+                var respuesta = await usuarioService.AltaTrabajador(id);
+                if (respuesta)
+                {
+                    return Ok();
+                }
+                return BadRequest();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inesperado: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde." });
+            }
         }
 
         // Obtener usuario por email

@@ -63,7 +63,7 @@ namespace Icp.HotelAPI.Servicios.UsuariosService
             var entidad = mapper.Map<Usuario>(usuarioCreacionDTO);
 
             entidad.Id = id;
-            
+
             context.Entry(entidad).State = EntityState.Modified;
             await context.SaveChangesAsync();
             return true;
@@ -89,6 +89,81 @@ namespace Icp.HotelAPI.Servicios.UsuariosService
             return true;
         }
 
+        public async Task<bool> BajaUsuario(int id)
+        {
+            var entidad = await context.Usuarios.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (entidad == null)
+            {
+                return false;
+            }
+
+            if (entidad.IdPerfil == 4)
+            {
+                var clienteUsuario = await context.ClienteUsuarios
+               .Where(tc => tc.IdUsuario == id)
+               .ToListAsync();
+
+                context.ClienteUsuarios.RemoveRange(clienteUsuario);
+            }
+
+            entidad.Baja = true;
+
+            await context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> AltaUsuario(int id, UsuarioAltaDTO usuarioAltaDTO)
+        {
+            var entidad = await context.Usuarios.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (entidad == null)
+            {
+                throw new InvalidOperationException("Usuario no encontrado");
+            }
+
+            var cliente = await context.Clientes.FirstOrDefaultAsync(c => c.Dni == usuarioAltaDTO.Dni);
+            if (cliente == null)
+            {
+                throw new InvalidOperationException("Cliente no encontrado");
+            }
+
+            var existeClienteUsuario = await context.ClienteUsuarios.FirstOrDefaultAsync(c => c.IdCliente == cliente.Id);
+
+            if (existeClienteUsuario != null)
+            {
+                throw new InvalidOperationException("El cliente ya tiene una cuenta asociada");
+            }
+
+            entidad.Baja = false;
+
+            var clienteUsuario = new ClienteUsuario
+            {
+                IdCliente = cliente.Id,
+                IdUsuario = id
+            };
+
+            context.ClienteUsuarios.Add(clienteUsuario);
+
+            await context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> AltaTrabajador(int id)
+        {
+            var entidad = await context.Usuarios.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (entidad == null)
+            {
+                throw new InvalidOperationException("Usuario no encontrado");
+            }
+
+            entidad.Baja = false;
+
+            await context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<RespuestaAutenticacionDTO> Login(UsuarioCredencialesDTO usuarioCredencialesDTO)
         {
             var resultado = await context.Usuarios.FirstOrDefaultAsync(x => x.Email == usuarioCredencialesDTO.Email);
@@ -96,6 +171,11 @@ namespace Icp.HotelAPI.Servicios.UsuariosService
             if (resultado == null)
             {
                 throw new InvalidOperationException("Usuario no encontrado");
+            }
+
+            if (resultado.Baja)
+            {
+                throw new InvalidOperationException("Usuario de baja");
             }
 
             if (!loginService.VerificarContrasenya(usuarioCredencialesDTO.Contrasenya, resultado.Contrasenya))

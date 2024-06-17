@@ -66,7 +66,7 @@ namespace Icp.HotelAPI.Servicios.ClientesUsuariosService
                 cliente = mapper.Map<Cliente>(clienteUsuarioDTO);
                 context.Clientes.Add(cliente);
             }
-            await context.SaveChangesAsync();
+            
 
             // Verificar si el cliente ya tiene una cuenta asociada antes de crear el usuario
             var existeClienteUsuario = await context.ClienteUsuarios.FirstOrDefaultAsync(c => c.IdCliente == cliente.Id);
@@ -79,8 +79,9 @@ namespace Icp.HotelAPI.Servicios.ClientesUsuariosService
             var existeUsuario = await context.Usuarios.FirstOrDefaultAsync(x => x.Email == clienteUsuarioDTO.Email);
             if (existeUsuario != null)
             {
-                throw new InvalidOperationException($"Ya existe un usuario con email: {clienteUsuarioDTO.Email}");
+                throw new InvalidOperationException($"El email {clienteUsuarioDTO.Email} ya existe");
             }
+            await context.SaveChangesAsync();
 
             // Crear el usuario
             var usuario = mapper.Map<Usuario>(clienteUsuarioDTO);
