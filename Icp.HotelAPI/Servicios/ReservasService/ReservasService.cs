@@ -321,6 +321,18 @@ namespace Icp.HotelAPI.Servicios.ReservasService
             return true;
         }
 
+        public async Task<bool> PagarReserva(int id)
+        {
+            var reserva = await context.Reservas.FirstOrDefaultAsync(x => x.Id == id);
+            if (reserva == null)
+            {
+                throw new InvalidOperationException("La reserva no existe");
+            }
+            reserva.Pagado = true;
+            await context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<bool> BorrarReserva(int id)
         {
             var entidad = await context.Reservas.FirstOrDefaultAsync(x => x.Id == id);
