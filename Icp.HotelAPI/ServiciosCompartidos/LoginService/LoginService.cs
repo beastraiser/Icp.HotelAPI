@@ -57,8 +57,9 @@ namespace Icp.HotelAPI.ServiciosCompartidos.LoginService
 
         public bool VerificarContrasenya(string contrasenya, string hash)
         {
+            var viejoHash = HashContrasenya(hash);
             var nuevoHash = HashContrasenya(contrasenya);
-            return nuevoHash == hash;
+            return nuevoHash == viejoHash;
         }
 
         private bool IsPasswordHashed(string password)
