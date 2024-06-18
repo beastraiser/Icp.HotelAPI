@@ -175,7 +175,7 @@ namespace Icp.HotelAPI.Servicios.UsuariosService
 
             if (resultado.Baja)
             {
-                throw new InvalidOperationException("Usuario de baja");
+                throw new InvalidOperationException("Usuario dado de baja");
             }
 
             if (!loginService.VerificarContrasenya(usuarioCredencialesDTO.Contrasenya, resultado.Contrasenya))
@@ -216,6 +216,11 @@ namespace Icp.HotelAPI.Servicios.UsuariosService
             if (resultado == null)
             {
                 throw new InvalidOperationException("Usuario no encontrado");
+            }
+
+            if (resultado.Baja)
+            {
+                throw new InvalidOperationException("Usuario dado de baja");
             }
 
             if (!loginService.VerificarContrasenya(usuarioCredencialesDTO.Contrasenya, resultado.Contrasenya))

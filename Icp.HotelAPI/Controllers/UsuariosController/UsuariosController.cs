@@ -54,6 +54,7 @@ namespace Icp.HotelAPI.Controllers.UsuariosController
 
         // Dar de baja usuario
         [HttpGet("{id}/baja")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "NOTRECEPCION")]
         public async Task<ActionResult> BajaUsuario(int id)
         {
             try
