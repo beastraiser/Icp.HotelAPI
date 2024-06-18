@@ -15,6 +15,7 @@ namespace Icp.HotelAPI.BBDD.FCT_ABR_11Context.Entidades
         public string Email { get; set; }
         public string Contrasenya { get; set; }
         public DateTime FechaRegistro { get; set; } = DateTime.Now;
+        public bool Baja { get; set; }
 
         public virtual Perfil IdPerfilNavigation { get; set; }
         public virtual ClienteUsuario ClienteUsuario { get; set; }

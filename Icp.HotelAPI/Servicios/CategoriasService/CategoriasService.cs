@@ -96,15 +96,24 @@ namespace Icp.HotelAPI.Servicios.CategoriasService
 
         public async Task<bool> CambiarDatosCategoria(int id, [FromForm] CategoriaCreacionDTO categoriaCreacionDTO)
         {
-            var categoriaDB = await context.Categorias.FirstOrDefaultAsync(x => x.Id == id);
+            var categoriaDB = await context.Categorias
+                                  .Include(c => c.TipoCamas)
+                                  .FirstOrDefaultAsync(x => x.Id == id);
 
             if (categoriaDB == null)
             {
                 return false;
             }
 
-            // Al mapearlo de esta manera solo se actualizan aquellos campos que son distintos
+            // Actualizar propiedades de categoriaDB con los valores de categoriaCreacionDTO
             categoriaDB = mapper.Map(categoriaCreacionDTO, categoriaDB);
+
+            // Actualizar la colección TipoCamas
+            categoriaDB.TipoCamas.Clear();
+            foreach (var tipoCamaDTO in categoriaCreacionDTO.TipoCamas)
+            {
+                categoriaDB.TipoCamas.Add(new TipoCama { Tipo = tipoCamaDTO.Tipo });
+            }
 
             // Lógica para editar una foto
             if (categoriaCreacionDTO.Foto != null)

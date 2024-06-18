@@ -63,6 +63,17 @@ namespace Icp.HotelAPI.Servicios.ReservasService
 
         public async Task<List<ReservaDetallesMostrarDTO>> ObtenerReservasPorIdUsuario(int id)
         {
+            var usuario = await context.Usuarios.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (usuario == null)
+            {
+                throw new InvalidOperationException("El usuario no existe");
+            }
+            if (usuario.Baja)
+            {
+                throw new InvalidOperationException("El usuario está dado de baja");
+            }
+
             var entidades = await context.Reservas
                 .Where(x => x.IdUsuario == id)
                 .Include(x => x.ReservaHabitacionServicios)

@@ -50,7 +50,7 @@ namespace Icp.HotelAPI.Controllers.ReservasController
             }
             catch (InvalidOperationException ex)
             {
-                return NotFound(new { Message = ex.Message });
+                return NotFound(new { ex.Message });
             }
             catch (Exception ex)
             {
