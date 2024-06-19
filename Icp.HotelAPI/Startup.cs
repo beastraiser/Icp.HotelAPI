@@ -60,7 +60,7 @@ namespace Icp.HotelAPI
             services.AddAutoMapper(typeof(Startup));
 
             // Configuración de la conexión
-            services.AddDbContext<FCT_ABR_11Context>(options => options.UseSqlServer(Configuration.GetConnectionString("ICPConnection")));
+            services.AddDbContext<FCT_ABR_11Context>(options => options.UseSqlServer(Configuration.GetConnectionString("HomeConnection")));
 
             services.AddControllers()
                 .AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
